@@ -1,5 +1,5 @@
 {
-  "name": "sistemagerenciadorreservas",
+  "name": "reservas-service",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
@@ -10,6 +10,6 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "sequelize": "^6.37.7"
+    "express": "^5.1.0"
   }
 }

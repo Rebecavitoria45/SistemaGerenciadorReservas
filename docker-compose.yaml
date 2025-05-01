@@ -1,0 +1,103 @@
+version: '3.8'
+
+services:
+  nginx:
+    build: nginx
+    ports:
+      - "8080:80"
+    depends_on:
+      - quartos-service
+      - reservas-service
+      - usuarios-service
+    networks:
+      - hotel-network
+
+  
+  quartos-service:
+    build: quartos-service
+    ports:
+      - "3002:3000"
+    environment:
+      DB_HOST: quartos-db
+      DB_USER: root
+      DB_PASSWORD: example
+      DB_NAME: quartos_db
+    depends_on:
+      - quartos-db
+    networks:
+      - hotel-network
+
+  quartos-db:
+    image: mysql:8
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: example
+      MYSQL_DATABASE: quartos_db
+    ports:
+      - "3307:3306"
+   
+    networks:
+      - hotel-network
+
+  reservas-service:
+    build: reservas-service
+    ports:
+      - "3003:3000"
+    environment:
+      DB_HOST: reservas-db
+      DB_USER: root
+      DB_PASSWORD: example
+      DB_NAME: reservas_db
+    depends_on:
+      - reservas-db
+    networks:
+      - hotel-network
+
+  reservas-db:
+    image: mysql:8
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: example
+      MYSQL_DATABASE: reservas_db
+    ports:
+      - "3308:3306"
+    networks:
+      - hotel-network
+
+  
+  usuarios-service:
+    build: usuarios-service
+    ports:
+      - "3004:3000"
+    environment:
+      DB_HOST: usuarios-db
+      DB_USER: root
+      DB_PASSWORD: example
+      DB_NAME: usuarios_db
+    depends_on:
+      - usuarios-db
+    networks:
+      - hotel-network
+
+  usuarios-db:
+    image: mysql:8
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: example
+      MYSQL_DATABASE: usuarios_db
+    ports:
+      - "3309:3306"
+    
+    networks:
+      - hotel-network
+
+
+volumes:
+  quartos_data:
+  reservas_data:
+  usuarios_data:
+  
+
+networks:
+  hotel-network:
+    driver: bridge
