@@ -1,6 +1,7 @@
 'use strict';
 const { DataTypes, UUID } = require('sequelize');
 
+
 module.exports = (sequelize) => {
   const Reserva = sequelize.define('Reserva', {
     id_reserva: {
@@ -8,20 +9,11 @@ module.exports = (sequelize) => {
       primaryKey: true,
       defaultValue: DataTypes.UUIDV4,
     },
-    id_quarto: {
-      type: UUID,
+    id_usuario: { 
+      type: DataTypes.UUID, 
       allowNull: false,
-      references: {
-        model: 'Quarto', 
-        key: 'id_quarto', 
-      },
-      onUpdate: 'CASCADE',
     },
-    id_usuario: {
-      type: UUID,
-      allowNull: false,
-      
-    },
+
     data_reserva: {
       type: DataTypes.DATE,
       allowNull: false,
@@ -43,5 +35,7 @@ module.exports = (sequelize) => {
     tableName: 'reservas',
   });
 
+
+  
   return Reserva;
 };

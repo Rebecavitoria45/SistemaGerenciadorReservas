@@ -1,9 +1,10 @@
 'use strict';
 const { DataTypes, UUID } = require('sequelize');
 
+
 module.exports = (sequelize) => {
-  const Reserva = sequelize.define('Reserva', {
-    id_reserva: {
+  const Quarto = sequelize.define('Quarto', {
+    id_quarto: {
       type: UUID,
       allowNull: false,
       unique: true,
