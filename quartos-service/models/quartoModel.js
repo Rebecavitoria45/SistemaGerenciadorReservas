@@ -1,12 +1,13 @@
 'use strict';
-const { DataTypes, UUID } = require('sequelize');
+const { DataTypes } = require('sequelize');
 
 
 module.exports = (sequelize) => {
   const Quarto = sequelize.define('Quarto', {
-    id_quarto: {
-      type: UUID,
+    numero_quarto: {
+      type: DataTypes.INTEGER,
       allowNull: false,
+      primaryKey: true,
       unique: true,
     },
     preco_noite: {
@@ -25,6 +26,7 @@ module.exports = (sequelize) => {
 
   }, {
     tableName: 'quartos', 
+    timestamps: false,
   });
 
 

@@ -1,13 +1,13 @@
 'use strict';
 
-const { DataTypes, UUID } = require('sequelize');
+const { DataTypes } = require('sequelize');
 
 module.exports = (sequelize) => {
   const Usuario = sequelize.define('Usuario', {
     id_usuario: {
-      type: UUID,
+      type: DataTypes.INTEGER,
       primaryKey: true,
-      defaultValue: DataTypes.UUIDV4,
+      autoIncrement: true,
     },
     nome: {
       type: DataTypes.STRING,
@@ -27,6 +27,7 @@ module.exports = (sequelize) => {
     },
   }, {
     tableName: 'usuarios',
+    timestamps: false,
   });
 
   return Usuario;

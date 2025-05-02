@@ -1,16 +1,20 @@
 'use strict';
-const { DataTypes, UUID } = require('sequelize');
+const { DataTypes } = require('sequelize');
 
 
 module.exports = (sequelize) => {
   const Reserva = sequelize.define('Reserva', {
     id_reserva: {
-      type: UUID,
+      type: DataTypes.INTEGER,
       primaryKey: true,
-      defaultValue: DataTypes.UUIDV4,
+      autoIncrement: true,
     },
     id_usuario: { 
-      type: DataTypes.UUID, 
+      type: DataTypes.INTEGER, 
+      allowNull: false,
+    },
+    id_quarto: { 
+      type: DataTypes.INTEGER, 
       allowNull: false,
     },
 
@@ -33,6 +37,7 @@ module.exports = (sequelize) => {
     },
   }, {
     tableName: 'reservas',
+    timestamps: false,
   });
 
 
