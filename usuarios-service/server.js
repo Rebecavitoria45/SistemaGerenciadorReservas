@@ -1,18 +1,14 @@
 const express = require('express');
 require('dotenv').config(); 
 const sequelize = require('./config/database');
-const defineUsuarioModel = require('./models/usuarioModel');
+const Usuario = require('./models/usuarioModel');
+const usuarioRouter = require('./routers/usuarioRouter')
+
+module.exports = {Usuario};
 
 const app = express();
 app.use(express.json());
-
-const Usuario = defineUsuarioModel(sequelize);
-
-// Teste de rota
-app.get('/', async (req, res) => {
-  const usuarios = await Usuario.findAll();
-  res.json(usuarios);
-});
+app.use(usuarioRouter)
 
 // Função para tentar conectar repetidamente
 async function connectWithRetry() {
