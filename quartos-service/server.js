@@ -2,10 +2,13 @@ const express = require('express');
 require('dotenv').config(); 
 const sequelize = require('./config/database');
 const Quarto = require('./models/quartoModel');
+const quartoRouter = require('./routers/quartoRouter')
 module.exports = {Quarto};
 
 const app = express();
 app.use(express.json());
+
+app.use(quartoRouter)
 
 
 async function connectWithRetry() {

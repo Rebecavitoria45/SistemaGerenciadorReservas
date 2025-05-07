@@ -2,17 +2,17 @@ const Quarto = require('../models/quartoModel');
 
 exports.cadastrarQuarto = async (req, res) => {
     try {
-        const { numero, tipo, capacidade, preco, status } = req.body;
+        const { numero_quarto,tipo, capacidade, preco, disponivel } = req.body;
 
-        if (!numero) return res.status(422).json({ msg: 'Número do quarto é obrigatório' });
+        if (!numero_quarto) return res.status(422).json({ msg: 'Número do quarto é obrigatório' });
         if (!tipo) return res.status(422).json({ msg: 'Tipo do quarto é obrigatório' });
         if (!capacidade) return res.status(422).json({ msg: 'Capacidade do quarto é obrigatória' });
         if (!preco) return res.status(422).json({ msg: 'Preço do quarto é obrigatório' });
 
-        const quartoExiste = await Quarto.findOne({ where: { numero: req.body.numero } });
+        const quartoExiste = await Quarto.findOne({ where: { numero_quarto: req.body.numero_quarto } });
         if (quartoExiste) return res.status(422).json({ error: 'Já existe um quarto com este número' });
 
-        const quarto = await Quarto.create({ numero, tipo, capacidade, preco, status });
+        const quarto = await Quarto.create({ numero_quarto, tipo, capacidade, preco, disponivel });
         res.status(201).json({ msg: 'Quarto cadastrado com sucesso:', quarto });
     } catch (error) {
         console.error('Erro ao cadastrar quarto:', error);
@@ -32,20 +32,20 @@ exports.listarQuartos = async (req, res) => {
 
 exports.atualizarQuarto = async (req, res) => {
     try {
-        const { quarto_id } = req.params;
-        const { numero, tipo, capacidade, preco, status } = req.body;
+        const { numero_quarto} = req.params;
+        const { tipo, capacidade, preco, disponivel } = req.body;
 
-        const quarto = await Quarto.findByPk(quarto_id);
+        const quarto = await Quarto.findByPk(numero_quarto);
 
         if (!quarto) {
             return res.status(404).json({ msg: 'Quarto não encontrado' });
         }
 
-        if (numero) quarto.numero = numero;
+       
         if (tipo) quarto.tipo = tipo;
         if (capacidade) quarto.capacidade = capacidade;
         if (preco) quarto.preco = preco;
-        if (status) quarto.status = status;
+        if (disponivel) quarto.disponivel = disponivel;
 
         await quarto.save();
 
@@ -58,9 +58,9 @@ exports.atualizarQuarto = async (req, res) => {
 
 exports.deletarQuarto = async (req, res) => {
     try {
-        const { quarto_id } = req.params;
+        const { numero_quarto} = req.params;
 
-        const quarto = await Quarto.findByPk(quarto_id);
+        const quarto = await Quarto.findByPk(numero_quarto);
 
         if (!quarto) {
             return res.status(404).json({ msg: 'Quarto não encontrado' });

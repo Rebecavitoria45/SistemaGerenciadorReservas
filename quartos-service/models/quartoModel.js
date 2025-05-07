@@ -10,7 +10,11 @@ const sequelize = require('../config/database');
       primaryKey: true,
       unique: true,
     },
-    preco_noite: {
+    tipo: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    preco: {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: false,
     },
