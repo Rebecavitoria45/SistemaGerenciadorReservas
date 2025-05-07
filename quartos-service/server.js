@@ -8,10 +8,6 @@ const app = express();
 app.use(express.json());
 
 
-
-
-
-// Função para tentar conectar repetidamente
 async function connectWithRetry() {
   let connected = false;
   while (!connected) {
