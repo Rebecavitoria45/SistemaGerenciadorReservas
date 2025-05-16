@@ -1,19 +1,18 @@
 'use strict';
 const { DataTypes } = require('sequelize');
+const sequelize = require('../config/database');
 
-
-module.exports = (sequelize) => {
   const Reserva = sequelize.define('Reserva', {
     id_reserva: {
       type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
     },
-    id_usuario: { 
+    usuario_id: { 
       type: DataTypes.INTEGER, 
       allowNull: false,
     },
-    id_quarto: { 
+    numero_quarto: { 
       type: DataTypes.INTEGER, 
       allowNull: false,
     },
@@ -23,11 +22,11 @@ module.exports = (sequelize) => {
       allowNull: false,
     },
     check_in: {
-      type: DataTypes.INTEGER, 
+      type: DataTypes.DATE, 
       allowNull: false,
     },
     check_out: {
-      type: DataTypes.INTEGER, 
+      type: DataTypes.DATE, 
       allowNull: false,
     },
     numero_pessoas: {
@@ -40,7 +39,4 @@ module.exports = (sequelize) => {
     timestamps: false,
   });
 
-
-  
-  return Reserva;
-};
+module.exports = Reserva;

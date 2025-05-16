@@ -104,4 +104,20 @@ exports.cadastrarUsuario = async(req,res)=>{
               res.status(500).json({ error: 'Erro ao listar usuários' });
             }
           };
+
+          exports.buscarUsuario = async (req, res) => {
+            try {
+              const { usuario_id } = req.params; 
+          
+              const usuario = await Usuario.findByPk(usuario_id);
+          
+              if (!usuario) {
+                return res.status(404).json({ msg: 'Usuário não encontrado' });
+              }
+              res.status(200).json({ msg: 'Usuário encontrado', usuario });
+            } catch (error) {
+              console.error(error);
+              res.status(500).json({ msg: 'Erro ao Buscar usuário' });
+            }
+          };
           

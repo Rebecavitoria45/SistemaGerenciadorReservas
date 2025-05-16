@@ -74,3 +74,20 @@ exports.deletarQuarto = async (req, res) => {
         res.status(500).json({ msg: 'Erro ao deletar quarto' });
     }
 };
+
+exports.buscarQuarto = async (req, res) => {
+    try {
+        const { numero_quarto} = req.params;
+    
+        const quarto = await Quarto.findByPk(numero_quarto);
+
+        if (!quarto) {
+            return res.status(404).json({ msg: 'Quarto não encontrado' });
+        }
+
+        res.status(200).json({ msg: 'Quarto encontrado', quarto });
+    } catch (error) {
+        console.error('Erro ao atualizar quarto:', error);
+        res.status(500).json({ msg: 'Erro ao Buscar quarto' });
+    }
+};

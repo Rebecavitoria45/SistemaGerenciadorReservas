@@ -6,6 +6,6 @@ router.post('/cadastrar', quartoController.cadastrarQuarto)
 router.put('/:numero_quarto',quartoController.atualizarQuarto)
 router.delete('/:numero_quarto',quartoController.deletarQuarto)
 router.get('/listar',quartoController.listarQuartos)
-
+router.get('/:numero_quarto',quartoController.buscarQuarto)
 
 module.exports = router;

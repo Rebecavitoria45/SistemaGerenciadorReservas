@@ -1,18 +1,14 @@
 const express = require('express');
 require('dotenv').config(); 
 const sequelize = require('./config/database');
-const defineReservaModel = require('./models/reservaModel');
+const Reserva = require('./models/reservaModel');
+const reservaRouter = require('./routers/reservaRouter')
+module.exports = {Reserva};
 
 const app = express();
 app.use(express.json());
 
-const Reserva = defineReservaModel(sequelize);
-
-// Teste de rota
-app.get('/', async (req, res) => {
-  const reservas = await Reserva.findAll();
-  res.json(reservas);
-});
+app.use(reservaRouter)
 
 // Função para tentar conectar repetidamente
 async function connectWithRetry() {
