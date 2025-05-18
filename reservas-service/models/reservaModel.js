@@ -34,6 +34,10 @@ const sequelize = require('../config/database');
       allowNull: false,
       defaultValue: 1,
     },
+    preco_reserva: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: false,
+    },
   }, {
     tableName: 'reservas',
     timestamps: false,

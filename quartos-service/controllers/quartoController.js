@@ -1,4 +1,5 @@
 const Quarto = require('../models/quartoModel'); 
+const amqp = require('amqplib');
 
 exports.cadastrarQuarto = async (req, res) => {
     try {

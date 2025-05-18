@@ -11,6 +11,19 @@ services:
     networks:
       - hotel-network
 
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"     # Porta padrão para comunicação
+      - "15672:15672"   # Interface de gerenciamento web
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    networks:
+      - hotel-network
+  
+
   
   quartos-service:
     build: quartos-service
@@ -21,11 +34,13 @@ services:
       DB_USER: root
       DB_PASSWORD: example
       DB_NAME: quartos_db
+      RABBITMQ_URL: amqp://rabbitmq
     depends_on:
       - quartos-db
+      - rabbitmq
     networks:
       - hotel-network
-
+   
   quartos-db:
     image: mysql:8
     restart: always
@@ -38,6 +53,7 @@ services:
     networks:
       - hotel-network
 
+ 
   reservas-service:
     build: reservas-service
     ports:
@@ -47,8 +63,10 @@ services:
       DB_USER: root
       DB_PASSWORD: example
       DB_NAME: reservas_db
+      RABBITMQ_URL: amqp://rabbitmq
     depends_on:
       - reservas-db
+      - rabbitmq
     networks:
       - hotel-network
 
@@ -73,8 +91,10 @@ services:
       DB_USER: root
       DB_PASSWORD: example
       DB_NAME: usuarios_db
+
     depends_on:
       - usuarios-db
+      
     networks:
       - hotel-network
 

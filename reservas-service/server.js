@@ -4,10 +4,11 @@ const sequelize = require('./config/database');
 const Reserva = require('./models/reservaModel');
 const reservaRouter = require('./routers/reservaRouter')
 module.exports = {Reserva};
+const { connectRabbitMQ } = require('./utils/rabbitmq');
 
 const app = express();
 app.use(express.json());
-
+connectRabbitMQ();
 app.use(reservaRouter)
 
 // Função para tentar conectar repetidamente
