@@ -29,7 +29,7 @@ const routes = [
   {
     path: '/usuarios',
     name: 'Usuarios',
-    component: () => import('../views/UsuariosView.vue')
+    component: () => import('@/views/UsuariosView.vue')
   },  
   {
     path: '/login',

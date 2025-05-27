@@ -12,10 +12,13 @@
             <th>Check-in</th>
             <th>Check-out</th>
             <th>Status</th>
-            </tr>
+          </tr>
         </thead>
         <tbody>
-          <tr v-if="reservas.length === 0">
+          <tr v-if="loading">
+            <td colspan="7" class="no-data">Carregando reservas...</td>
+          </tr>
+          <tr v-else-if="reservas.length === 0">
             <td colspan="7" class="no-data">Nenhuma reserva recente encontrada.</td>
           </tr>
           <tr v-for="reserva in reservas" :key="reserva.id">
@@ -30,7 +33,7 @@
                 {{ reserva.status }}
               </span>
             </td>
-            </tr>
+          </tr>
         </tbody>
       </table>
     </div>
@@ -38,53 +41,37 @@
 </template>
 
 <script>
+import axios from 'axios'; 
+
 export default {
   name: 'ListagemReservas',
   data() {
     return {
-      reservas: [
-        {
-          id: 101,
-          dataReserva: '2025-05-15T10:00:00Z',
-          nomeCliente: 'Mariana Alves',
-          numeroQuarto: '205',
-          checkin: '2025-05-20',
-          checkout: '2025-05-25',
-          status: 'Confirmada',
-        },
-        {
-          id: 102,
-          dataReserva: '2025-05-16T14:30:00Z',
-          nomeCliente: 'Ricardo Souza',
-          numeroQuarto: '112',
-          checkin: '2025-05-22',
-          checkout: '2025-05-24',
-          status: 'Pendente',
-        },
-        {
-          id: 103,
-          dataReserva: '2025-05-17T09:15:00Z',
-          nomeCliente: 'Fernanda Oliveira',
-          numeroQuarto: '301',
-          checkin: '2025-05-28',
-          checkout: '2025-05-30',
-          status: 'Confirmada',
-        },
-        {
-          id: 104,
-          dataReserva: '2025-05-17T18:00:00Z',
-          nomeCliente: 'Lucas Pereira',
-          numeroQuarto: '108',
-          checkin: '2025-05-19',
-          checkout: '2025-05-21',
-          status: 'Cancelada',
-        },
-      ],
+      reservas: [], 
+      loading: true,
     };
   },
   methods: {
+    async fetchReservasRecentes(limit = 10) { 
+      this.loading = true;
+      try {
+        
+        const response = await axios.get(`/api/reservas/recentes?limite=${limit}`);
+        this.reservas = response.data;
+      } catch (error) {
+        console.error('Erro ao carregar reservas recentes:', error);
+        this.reservas = []; 
+      } finally {
+        this.loading = false; 
+      }
+    },
     formatarData(dataISO) {
+      if (!dataISO) return 'N/A'; 
       const data = new Date(dataISO);
+     
+      if (isNaN(data.getTime())) {
+          return 'Data Inválida';
+      }
       const dia = data.getDate().toString().padStart(2, '0');
       const mes = (data.getMonth() + 1).toString().padStart(2, '0');
       const ano = data.getFullYear();
@@ -94,23 +81,27 @@ export default {
       if (status === 'Confirmada') return 'status-active';
       if (status === 'Cancelada') return 'status-inactive';
       if (status === 'Pendente') return 'status-pending';
-      return '';
+      return ''; 
     },
+  },
+  mounted() {
+    this.fetchReservasRecentes(10); 
   },
 };
 </script>
 
 <style scoped>
 .listagem-container {
-  background-color: #f9fafb; 
+  background-color: #f9fafb;
   padding: 20px;
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin-top: 20px; /* Adicionado para dar um respiro com o cards-container */
 }
 
 .listagem-container h2 {
-  color: #374151; 
+  color: #374151;
   margin-bottom: 20px;
   font-size: 1.5rem;
   font-weight: 600;
@@ -125,14 +116,14 @@ table {
   border-collapse: collapse;
   background-color: #fff;
   border-radius: 8px;
-  overflow: hidden; 
+  overflow: hidden;
 }
 
 th,
 td {
   padding: 12px 15px;
   text-align: left;
-  border-bottom: 1px solid #e5e7eb; 
+  border-bottom: 1px solid #e5e7eb;
   color: #4b5563; /* cinza médio */
 }
 
@@ -180,7 +171,7 @@ tbody tr:hover {
 .no-data {
   text-align: center;
   padding: 20px;
-  color: #6b7280; /* cFinza */
+  color: #6b7280; /* cinza */
   font-style: italic;
 }
 </style>

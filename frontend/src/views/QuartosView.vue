@@ -1,203 +1,113 @@
 <template>
-  <div class="quartos-container">
-    <h1>Quartos</h1>
+  <div class="quartos-page">
+    <h2>Gerenciamento de Quartos</h2>
 
-    <div v-if="loading" class="loading-message">Carregando quartos...</div>
-    <div v-else-if="error" class="error-message">
-      Ocorreu um erro ao carregar os quartos: {{ error.message }}
-    </div>
-    <div v-else-if="quartos.length === 0" class="no-results">Nenhum quarto encontrado.</div>
-    <div v-else class="cards-container">
-      <div v-for="quarto in quartosPaginados" :key="quarto.id" class="quarto-card">
-        <h2>Quarto {{ quarto.numero }}</h2>
-        <p><strong>Tipo:</strong> {{ quarto.tipo }}</p>
-        <p><strong>Status:</strong> {{ quarto.status }}</p>
-      </div>
-    </div>
+    <p v-if="loading">Carregando quartos...</p>
+    <p v-if="error" class="error-message">Erro: {{ error }}</p>
 
-    <div v-if="quartos.length > 0" class="paginacao">
-      <button @click="paginaAnterior" :disabled="paginaAtual === 1">Anterior</button>
-      <span>Página {{ paginaAtual }} de {{ totalPaginas }}</span>
-      <button @click="proximaPagina" :disabled="paginaAtual === totalPaginas">Próxima</button>
+    <div v-if="quartos && quartos.length" class="quartos-grid">
+      <QuartoCard
+        v-for="quarto in quartos"
+        :key="quarto.numero_quarto"
+        :quarto="quarto"
+        @open-popup="handleOpenPopup"
+      />
     </div>
+    <p v-else-if="!loading && !error && (!quartos || quartos.length === 0)" class="no-rooms-message">Nenhum quarto encontrado.</p>
   </div>
 </template>
 
 <script>
+import QuartoCard from '../components/quartoCard.vue';
 import axios from 'axios';
 
 export default {
-  name: 'Quartos',
+  name: 'QuartosPage',
+  components: {
+    QuartoCard, 
+  },
   data() {
     return {
-      paginaAtual: 1,
-      porPagina: 6,
-      quartos: [],
-      loading: false,
+      quartos: [], 
+      loading: true,
       error: null,
     };
   },
-  computed: {
-    totalPaginas() {
-      return Math.ceil(this.quartos.length / this.porPagina);
-    },
-    quartosPaginados() {
-      const start = (this.paginaAtual - 1) * this.porPagina;
-      return this.quartos.slice(start, start + this.porPagina);
-    }
+  async created() {
+    await this.fetchQuartos();
   },
   methods: {
     async fetchQuartos() {
-      this.loading = true;
-      this.error = null;
       try {
-        const response = await axios.get('https://api.example.com/quartos');
-        this.quartos = response.data;
+        this.loading = true;
+        this.error = null;
+
+        console.log("Tentando buscar quartos...");
+        const response = await axios.get('http://localhost:3002/listar'); 
+        
+        console.log("Dados recebidos da API de quartos:", response.data);
+        
+        if (Array.isArray(response.data)) {
+            this.quartos = response.data;
+        } else {
+            console.error("Formato inesperado da API de quartos. Esperado um array, recebido:", response.data);
+            this.error = "Erro no formato dos dados da API de quartos.";
+        }
+
       } catch (err) {
-        this.error = err;
         console.error('Erro ao buscar quartos:', err);
+        if (err.response) {
+          this.error = `Erro do servidor: ${err.response.status} - ${err.response.data?.message || 'Erro desconhecido do servidor.'}`;
+          console.error("Detalhes da resposta de erro:", err.response.data);
+        } else if (err.request) {
+          this.error = 'Erro de rede: O servidor de quartos não está respondendo. Verifique se ele está online e a URL do backend está correta.';
+          console.error("Nenhuma resposta recebida do servidor:", err.request);
+        } else {
+          this.error = 'Ocorreu um erro inesperado ao configurar a requisição.';
+          console.error("Erro na requisição Axios:", err.message);
+        }
       } finally {
         this.loading = false;
       }
     },
-    paginaAnterior() {
-      if (this.paginaAtual > 1) this.paginaAtual--;
+    handleOpenPopup(roomNumber) {
+      console.log(`Você clicou para abrir o popup do quarto com número: ${roomNumber}`);
     },
-    proximaPagina() {
-      if (this.paginaAtual < this.totalPaginas) this.paginaAtual++;
-    }
   },
-  created() {
-    this.fetchQuartos();
-  }
 };
 </script>
 
 <style scoped>
-.quartos-container {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
+.quartos-page {
   padding: 20px;
   max-width: 1200px;
   margin: 0 auto;
 }
 
-h1 {
+h2 {
   text-align: center;
-  color: #333;
-  font-size: 2.5em;
-  font-weight: 700;
+  margin-bottom: 30px;
+  color: #2c3e50;
 }
 
-.loading-message, .error-message, .no-results {
-  text-align: center;
-  font-size: 1.2em;
-  color: #666;
-  padding: 30px;
-  border-radius: 8px;
-  background-color: #f8f8f8;
-  border: 1px solid #ddd;
+.quartos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
+  gap: 25px;
+  justify-content: center;
+  align-items: start;
 }
 
 .error-message {
-  color: #d9534f;
-  background-color: #fcecec;
-  border-color: #ebccd1;
-}
-
-.cards-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.5rem;
-}
-
-.quarto-card {
-  border: 1px solid #e0e0e0;
-  border-radius: 12px;
-  padding: 1.5rem;
-  background-color: #fff;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  min-height: 180px;
-}
-
-.quarto-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
-}
-
-.quarto-card h2 {
-  font-size: 1.6em;
-  color: #2c3e50;
-  margin-top: 0;
-  margin-bottom: 10px;
-}
-
-.quarto-card p {
-  font-size: 1.1em;
-  color: #555;
-  margin-bottom: 8px;
-}
-
-.quarto-card p strong {
-  color: #1a73e8;
-}
-
-.paginacao {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 1.5rem;
-  margin-top: 2rem;
-}
-
-.paginacao button {
-  padding: 0.7rem 1.4rem;
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 1em;
+  color: red;
+  text-align: center;
+  margin-top: 20px;
   font-weight: bold;
-  transition: background-color 0.3s ease;
 }
 
-.paginacao button:disabled {
-  background-color: #cccccc;
-  cursor: not-allowed;
-  opacity: 0.7;
-}
-
-.paginacao button:not(:disabled):hover {
-  background-color: #45a049;
-}
-
-.paginacao span {
-  font-size: 1.1em;
-  color: #555;
-}
-
-/* Responsivo */
-@media (max-width: 768px) {
-  .cards-container {
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  }
-  h1 {
-    font-size: 2em;
-  }
-}
-
-@media (max-width: 480px) {
-  .cards-container {
-    grid-template-columns: 1fr;
-  }
-  .paginacao {
-    flex-direction: column;
-  }
+.no-rooms-message {
+  text-align: center;
+  margin-top: 20px;
+  color: #666;
 }
 </style>

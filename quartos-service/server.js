@@ -1,5 +1,7 @@
 const express = require('express');
 require('dotenv').config(); 
+const cors = require('cors');
+
 const sequelize = require('./config/database');
 const Quarto = require('./models/quartoModel');
 const quartoRouter = require('./routers/quartoRouter')
@@ -8,6 +10,13 @@ const consumirEventos = require('./consumer/quartoConsumer');
 module.exports = {Quarto};
 
 const app = express();
+
+app.use(cors({
+  // Mude para um array para permitir múltiplas origens
+  origin: ['http://localhost:8080', 'http://localhost:8081'], 
+  credentials: true
+}));
+
 app.use(express.json());
 
 app.use(quartoRouter)

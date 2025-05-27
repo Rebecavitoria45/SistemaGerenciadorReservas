@@ -1,12 +1,21 @@
 const express = require('express');
 require('dotenv').config(); 
+const cors = require('cors');
+
 const sequelize = require('./config/database');
 const Reserva = require('./models/reservaModel');
 const reservaRouter = require('./routers/reservaRouter')
+
 module.exports = {Reserva};
 const { connectRabbitMQ } = require('./utils/rabbitmq');
 
 const app = express();
+app.use(cors({
+  // Mude para um array para permitir múltiplas origens
+  origin: ['http://localhost:8080', 'http://localhost:8081'], 
+  credentials: true
+}));
+
 app.use(express.json());
 connectRabbitMQ();
 app.use(reservaRouter)

@@ -1,5 +1,7 @@
 const express = require('express');
-require('dotenv').config(); 
+require('dotenv').config();
+const cors = require('cors');
+
 const sequelize = require('./config/database');
 const Usuario = require('./models/usuarioModel');
 const usuarioRouter = require('./routers/usuarioRouter')
@@ -7,6 +9,13 @@ const usuarioRouter = require('./routers/usuarioRouter')
 module.exports = {Usuario};
 
 const app = express();
+
+app.use(cors({
+  // Mude para um array para permitir múltiplas origens
+  origin: ['http://localhost:8080', 'http://localhost:8081'], 
+  credentials: true
+}));
+
 app.use(express.json());
 app.use(usuarioRouter)
 

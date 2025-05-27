@@ -37,9 +37,9 @@
           <span class="user-role">Admin</span>
         </div>
       </div>
-      <router-link to="/logout" class="logout-link">
+      <a href="#" class="logout-link" @click.prevent="handleLogout">
         <i class="bi bi-box-arrow-left me-2"></i> Log Out
-      </router-link>
+      </a>
     </div>
   </div>
 
@@ -51,6 +51,7 @@
 <script>
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
+import axios from 'axios'; // Importe o Axios
 
 export default {
   name: 'Sidebar',
@@ -70,17 +71,40 @@ export default {
     const closeSidebar = () => { isOpen.value = false; };
 
     const handleNavigationClick = (event) => {
+      setTimeout(() => {
+        closeSidebar();
+      }, 200); 
       document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
       event.currentTarget.classList.add('active');
     };
 
-    return { isOpen, openSidebar, closeSidebar, handleNavigationClick, menuItems };
+    // --- Nova Função de Logout ---
+    const handleLogout = async () => {
+      try {
+     
+        console.log('Logout realizado no frontend.');
+
+        localStorage.removeItem('userToken');
+       
+        router.push('/login');
+        
+        closeSidebar();
+
+      } catch (error) {
+        console.error('Erro ao fazer logout:', error);
+        localStorage.removeItem('userToken');
+        router.push('/login');
+      }
+    };
+
+    return { isOpen, openSidebar, closeSidebar, handleNavigationClick, menuItems, handleLogout };
   }
 };
 </script>
 
 
 <style scoped>
+/* Seus estilos CSS permanecem os mesmos */
 .sidebar-container {
   position: fixed;
   top: 0;
@@ -199,10 +223,16 @@ export default {
   text-decoration: none;
   display: flex;
   align-items: center;
+  /* Adicionado para que o link de logout ocupe a largura do footer */
+  width: 100%;
+  padding: 0.5rem 0;
+  border-radius: 4px;
+  transition: background-color 0.2s;
 }
 
 .logout-link:hover {
   color: #000;
+  background-color: #f0f0f0;
 }
 
 .open-sidebar-btn {

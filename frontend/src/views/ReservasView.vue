@@ -1,216 +1,113 @@
 <template>
-  <div class="reservas-container">
-    <h1>Reservas</h1>
-    
-    <div v-if="loading" class="loading-message">Carregando reservas...</div>
-    <div v-else-if="error" class="error-message">
-      Ocorreu um erro ao carregar as reservas: {{ error.message }}
-    </div>
-    <div v-else-if="reservas.length === 0" class="no-reservations">Nenhuma reserva encontrada.</div>
-    <div v-else class="cards-container">
-      <div v-for="reserva in reservasPaginadas" :key="reserva.id" class="reserva-card">
-        <h2>{{ reserva.nome }}</h2>
-        <p><strong>Quarto:</strong> {{ reserva.quarto }}</p>
-        <p><strong>Data:</strong> {{ reserva.data }}</p>
-        </div>
-    </div>
+  <div class="reservas-page">
+    <h2>Gerenciamento de Reservas</h2>
 
-    <div v-if="reservas.length > 0" class="paginacao">
-      <button @click="paginaAnterior" :disabled="paginaAtual === 1">Anterior</button>
-      <span>Página {{ paginaAtual }} de {{ totalPaginas }}</span>
-      <button @click="proximaPagina" :disabled="paginaAtual === totalPaginas">Próxima</button>
+    <p v-if="loading">Carregando reservas...</p>
+    <p v-if="error" class="error-message">Erro: {{ error }}</p>
+
+    <div v-if="reservas && reservas.length" class="reservas-grid">
+      <ReservaCard
+        v-for="reserva in reservas"
+        :key="reserva.id_reserva"
+        :reserva="reserva"
+        @open-popup="handleOpenPopup"
+      />
     </div>
+    <p v-else-if="!loading && !error && (!reservas || reservas.length === 0)" class="no-reservations-message">Nenhuma reserva encontrada.</p>
   </div>
 </template>
 
 <script>
-import axios from 'axios'; 
+import ReservaCard from '../components/ReservaCard.vue';
+import axios from 'axios';
 
 export default {
-  name: 'Reservas',
+  name: 'ReservasPage',
+  components: {
+    ReservaCard, 
+  },
   data() {
     return {
-      paginaAtual: 1,
-      porPagina: 6,
       reservas: [], 
-      loading: false, 
-      error: null,   
+      loading: true,
+      error: null,
     };
   },
-  computed: {
-    totalPaginas() {
-      return Math.ceil(this.reservas.length / this.porPagina);
-    },
-    reservasPaginadas() {
-      const start = (this.paginaAtual - 1) * this.porPagina;
-      const end = start + this.porPagina;
-      return this.reservas.slice(start, end);
-    }
+  async created() {
+    await this.fetchReservas();
   },
   methods: {
     async fetchReservas() {
-      this.loading = true; 
-      this.error = null; 
       try {
+        this.loading = true;
+        this.error = null;
+
+        console.log("Tentando buscar reservas...");
+        const response = await axios.get('http://localhost:3003/listar'); 
         
-        const response = await axios.get('https://api.example.com/reservas'); 
-        this.reservas = response.data;
+        console.log("Dados recebidos da API de reservas:", response.data); 
+        
+        if (Array.isArray(response.data)) {
+            this.reservas = response.data;
+        } else {
+            console.error("Formato inesperado da API de reservas. Esperado um array, recebido:", response.data);
+            this.error = "Erro no formato dos dados da API de reservas.";
+        }
+
       } catch (err) {
-        this.error = err; 
-        console.error("Erro ao buscar reservas:", err);
+        console.error('Erro ao buscar reservas:', err);
+        if (err.response) {
+          this.error = `Erro do servidor: ${err.response.status} - ${err.response.data?.message || 'Erro desconhecido do servidor.'}`;
+          console.error("Detalhes da resposta de erro:", err.response.data);
+        } else if (err.request) {
+          this.error = 'Erro de rede: O servidor de reservas não está respondendo. Verifique se ele está online e a URL do backend está correta.';
+          console.error("Nenhuma resposta recebida do servidor:", err.request);
+        } else {
+          this.error = 'Ocorreu um erro inesperado ao configurar a requisição.';
+          console.error("Erro na requisição Axios:", err.message);
+        }
       } finally {
-        this.loading = false; 
+        this.loading = false;
       }
     },
-    paginaAnterior() {
-      if (this.paginaAtual > 1) this.paginaAtual--;
+    handleOpenPopup(reservaId) {
+      console.log(`Você clicou para abrir o popup da reserva com ID: ${reservaId}`);
     },
-    proximaPagina() {
-      if (this.paginaAtual < this.totalPaginas) this.paginaAtual++;
-    }
   },
-  created() {
-    this.fetchReservas(); 
-  }
 };
 </script>
 
 <style scoped>
-.reservas-container {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-  padding: 20px; 
-  max-width: 1200px; 
-  margin: 0 auto; 
-
-h1 {
-  text-align: center;
-  color: #333;
-  margin-bottom: 1.5rem;
-  font-size: 2.5em;
-  font-weight: 700;
+.reservas-page {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
-.loading-message, .error-message, .no-reservations {
+h2 {
   text-align: center;
-  font-size: 1.2em;
-  color: #666;
-  padding: 30px;
-  border-radius: 8px;
-  background-color: #f8f8f8;
-  border: 1px solid #ddd;
+  margin-bottom: 30px;
+  color: #2c3e50;
+}
+
+.reservas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
+  gap: 25px;
+  justify-content: center;
+  align-items: start;
 }
 
 .error-message {
-  color: #d9534f; 
-  background-color: #fcecec;
-  border-color: #ebccd1;
-}
-
-
-.cards-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
-  gap: 1.5rem; 
-}
-
-.reserva-card {
-  border: 1px solid #e0e0e0; 
-  border-radius: 12px;
-  padding: 1.5rem; 
-  background-color: #fff;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between; 
-  min-height: 180px; 
-}
-.reserva-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12); 
-}
-
-.reserva-card h2 {
-  font-size: 1.6em;
-  color: #2c3e50; 
-  margin-top: 0;
-  margin-bottom: 10px;
-}
-
-.reserva-card p {
-  font-size: 1.1em; 
-  color: #555;
-  margin-bottom: 8px;
-}
-
-.reserva-card p strong {
-  color: #1a73e8; 
-}
-
-.paginacao {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 1.5rem; 
-  margin-top: 2rem;
-}
-
-.paginacao button {
-  padding: 0.7rem 1.4rem; 
-  background-color: #4CAF50; 
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 1em;
+  color: red;
+  text-align: center;
+  margin-top: 20px;
   font-weight: bold;
-  transition: background-color 0.3s ease;
-}
-.paginacao button:disabled {
-  background-color: #cccccc;
-  cursor: not-allowed;
-  opacity: 0.7;
-}
-.paginacao button:not(:disabled):hover {
-  background-color: #45a049;
 }
 
-.paginacao span {
-  font-size: 1.1em;
-  color: #555;
-}
-
-/* Responsividade */
-@media (max-width: 768px) {
-  .cards-container {
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 1.2rem;
-  }
-  .reserva-card {
-    padding: 1.2rem;
-  }
-  h1 {
-    font-size: 2em;
-  }
-}
-
-@media (max-width: 480px) {
-  .cards-container {
-    grid-template-columns: 1fr; /* Uma coluna em telas pequenas */
-    gap: 1rem;
-  }
-  .reserva-card {
-    padding: 1rem;
-  }
-  h1 {
-    font-size: 1.8em;
-  }
-  .paginacao {
-    flex-direction: column;
-    gap: 1rem;
-  }
-}
+.no-reservations-message {
+  text-align: center;
+  margin-top: 20px;
+  color: #666;
 }
 </style>

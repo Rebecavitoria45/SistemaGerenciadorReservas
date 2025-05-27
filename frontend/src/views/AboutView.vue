@@ -21,12 +21,6 @@
       </ul>
     </section>
 
-    <section class="tecnologias">
-      <h2>Desenvolvido com tecnologias modernas</h2>
-      <p>
-        Utilizamos o <strong>Vue.js</strong> no front-end para uma experiência dinâmica e fluida, integrando com APIs que garantem performance e confiabilidade. Todo o sistema foi pensado com boas práticas de desenvolvimento, visando um código limpo, reutilizável e escalável.
-      </p>
-    </section>
 
     <section class="visao">
       <h2>Nosso propósito</h2>
