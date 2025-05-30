@@ -1,73 +1,75 @@
 <template>
-  <div class="login-container">
-    <AuthForm
-      title="Login"
-      buttonText="Entrar"
-      :showPassword="true"
-      :showForgot="true"
-      altText="Não tem uma conta? Cadastre-se"
-      altLink="/register"
-      @submit="handleLogin"
-    />
-    <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
-    <p v-if="successMessage" class="success-message">{{ successMessage }}</p>
+  <div class="auth-container">
+    <div class="auth-card">
+      <h2>Login</h2>
+      <form @submit.prevent="handleLogin">
+        <div class="form-group">
+          <label for="email">Email:</label>
+          <input type="email" id="email" v-model="email" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label for="password">Senha:</label>
+          <input type="password" id="password" v-model="senha" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-primary" :disabled="loading">
+          {{ loading ? 'Entrando...' : 'Entrar' }}
+        </button>
+        <p v-if="error" class="error-message">{{ error }}</p>
+      </form>
+      <div class="auth-links">
+        <router-link to="/register">Não tem uma conta? Registre-se</router-link>
+        <router-link to="/forgot-password">Esqueceu sua senha?</router-link>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
-import axios from 'axios'; // Importa o Axios
-import AuthForm from '../components/AuthForm.vue'; // Ajuste o caminho conforme a localização do seu AuthForm.vue
+import axios from 'axios';
+
+const apiAuth = axios.create({
+  baseURL: 'http://localhost:3004', 
+});
 
 export default {
   name: 'LoginView',
-  components: {
-    AuthForm,
-  },
   data() {
     return {
-      errorMessage: '',    // Para exibir mensagens de erro da API
-      successMessage: '',  // Para exibir mensagens de sucesso
+      email: '',
+      senha: '',
+      loading: false,
+      error: null,
     };
   },
   methods: {
-    // Este método será passado para o AuthForm via prop @submit
-    async handleLogin(formData) {
-      this.errorMessage = '';   // Limpa mensagens anteriores
-      this.successMessage = '';
-
+    async handleLogin() {
+      this.loading = true;
+      this.error = null;
       try {
-        // Faz a requisição POST para o endpoint de login
-        const response = await axios.post('/api/auth/login', {
-          email: formData.email,
-          password: formData.password,
+        const response = await apiAuth.post('/login', {
+          email: this.email,
+          senha: this.senha,
         });
 
-        // Supondo que a API retorna um token ou uma mensagem de sucesso
-        if (response.data.token) {
-          // Armazenar o token (ex: no localStorage) para autenticação futura
-          localStorage.setItem('userToken', response.data.token);
-          this.successMessage = 'Login realizado com sucesso! Redirecionando...';
-          console.log('Token de autenticação:', response.data.token);
-
-          // Redirecionar para a página principal ou dashboard
-          this.$router.push('/dashboard'); // Certifique-se de ter o Vue Router configurado
+        if (response.status === 200) {
+          alert(response.data.msg);
+          this.$router.push('/');
         } else {
-          // Se não houver token mas a resposta for 2xx, pode ser um erro de lógica
-          this.errorMessage = response.data.message || 'Credenciais inválidas. Tente novamente.';
+          this.error = response.data.msg || 'Erro desconhecido ao tentar login.';
         }
-      } catch (error) {
-        console.error('Erro no login:', error);
-        // Lidar com diferentes tipos de erros da API
-        if (error.response) {
-          // Erro de resposta da API (ex: 401 Unauthorized, 400 Bad Request)
-          this.errorMessage = error.response.data.message || 'Erro ao fazer login. Verifique suas credenciais.';
-        } else if (error.request) {
-          // Requisição feita mas sem resposta (servidor offline, rede)
-          this.errorMessage = 'Não foi possível conectar ao servidor. Verifique sua conexão.';
+      } catch (err) {
+        if (err.response) {
+          this.error = err.response.data.msg || 'Erro ao fazer login. Tente novamente.';
+          console.error('Erro de resposta da API:', err.response.data);
+        } else if (err.request) {
+          this.error = 'Não foi possível conectar ao servidor. Verifique sua conexão ou a API.';
+          console.error('Erro de requisição:', err.request);
         } else {
-          // Algo aconteceu na configuração da requisição que disparou um erro
-          this.errorMessage = 'Ocorreu um erro inesperado. Tente novamente mais tarde.';
+          this.error = 'Ocorreu um erro inesperado. Tente novamente.';
+          console.error('Erro inesperado:', err.message);
         }
+      } finally {
+        this.loading = false;
       }
     },
   },
@@ -75,37 +77,132 @@ export default {
 </script>
 
 <style scoped>
-.login-container {
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%; 
+  width: 100%;  
+  overflow-x: hidden; 
+  font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; 
+  -webkit-font-smoothing: antialiased; 
+  -moz-osx-font-smoothing: grayscale; 
+  background-image: url('../assets/back.jpeg'); 
+  background-size: cover; 
+  background-position: center center; 
+  background-repeat: no-repeat; 
+  background-attachment: fixed; 
+}
+
+.auth-container {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: calc(100vh - 60px); /* Ajuste a altura se tiver header/footer */
-  background-color: #f0f2f5;
+  justify-content: center; 
+  align-items: center;     
+  min-height: 100vh;       
+  width: 100vw;           
+  box-sizing: border-box; 
   padding: 20px;
 }
 
+
+.auth-card {
+  background-color: #ffffff; 
+  padding: 40px 30px; 
+  border-radius: 12px; 
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1); 
+  width: 100%; 
+  max-width: 420px; 
+  text-align: center; 
+}
+
+.auth-card h2 {
+  margin-bottom: 30px; 
+  color: #333333; 
+  font-size: 2rem; 
+  font-weight: 600; 
+}
+
+.form-group {
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.form-group label {
+  display: block; 
+  margin-bottom: 10px; 
+  color: #555555; 
+  font-weight: 500; 
+  font-size: 0.95rem; 
+}
+
+.form-control {
+  width: 100%; 
+  padding: 14px 15px; 
+  border: 1px solid #cccccc; 
+  border-radius: 8px; 
+  font-size: 1.05rem; 
+  color: #333333; 
+  box-sizing: border-box; 
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-control:focus {
+  border-color: #007bff; 
+  outline: none; 
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.2); 
+}
+
+.btn-primary {
+  width: 100%; 
+  padding: 15px 20px; 
+  background-color: #007bff; 
+  color: #ffffff; 
+  border: none; 
+  border-radius: 8px;
+  font-size: 1.15rem;
+  font-weight: 600; 
+  cursor: pointer; 
+  transition: background-color 0.3s ease, transform 0.2s ease; 
+  margin-top: 25px; 
+}
+
+.btn-primary:hover {
+  background-color: #0056b3; 
+  transform: translateY(-2px); 
+}
+
+.btn-primary:active {
+  background-color: #004085; 
+  transform: translateY(0); 
+}
+
+.btn-primary:disabled {
+  background-color: #a0c9f1; 
+  cursor: not-allowed; 
+  transform: none; 
+}
+
 .error-message {
-  color: #d32f2f; /* Vermelho escuro */
-  background-color: #ffebee; /* Fundo vermelho claro */
-  border: 1px solid #ef9a9a;
-  padding: 10px 15px;
-  border-radius: 8px;
-  margin-top: 20px;
-  text-align: center;
-  font-size: 0.9rem;
+  color: #dc3545; 
+  margin-top: 15px; 
+  font-size: 0.9rem; 
+  text-align: center; 
 }
 
-.success-message {
-  color: #388e3c; /* Verde escuro */
-  background-color: #e8f5e9; /* Fundo verde claro */
-  border: 1px solid #a5d6a7;
-  padding: 10px 15px;
-  border-radius: 8px;
-  margin-top: 20px;
-  text-align: center;
-  font-size: 0.9rem;
+.auth-links {
+  margin-top: 30px; 
+  font-size: 0.95rem; 
 }
 
-/* Os estilos do formulário em si vêm do AuthForm.vue */
+.auth-links a {
+  color: #007bff; 
+  text-decoration: none; 
+  display: block; 
+  margin-bottom: 10px; 
+  transition: text-decoration 0.2s ease; 
+}
+
+.auth-links a:hover {
+  text-decoration: underline; 
+}
 </style>

@@ -46,21 +46,33 @@ export default {
 </script>
 
 <style>
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #f0f2f5; 
+  overflow: hidden;
+}
+
 #app {
   display: flex;
   width: 100vw;
   height: 100vh;
-  overflow: hidden;
+  overflow: hidden; 
 }
 
 .main-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
+  flex: 1; 
+  box-sizing: border-box;
   transition: margin-left 0.3s ease;
-  overflow-y: auto;
-  height: 100vh;
-  padding: 1rem;
+  overflow-y: auto; 
+  height: 100vh; 
+  padding: 20px;
 }
 
 .main-content.expanded {
@@ -72,16 +84,13 @@ export default {
 }
 
 .main-content.auth-layout {
-  margin-left: 0 !important;
-  justify-content: center;
-  align-items: center;
-  padding: 0;
-}
-
-html,
-body {
-  margin: 0;
-  padding: 0;
-  height: 100%;
+  margin-left: 0 !important; 
+  width: 100vw; 
+  height: 100vh; 
+  display: flex;
+  justify-content: center; 
+  align-items: center; 
+  padding: 0; 
+  background-color: transparent; 
 }
 </style>

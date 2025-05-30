@@ -2,10 +2,10 @@
   <div class="reserva-card" @click="emitOpenPopup">
     <div class="card-header">
       <h3>Reserva #{{ reserva.id_reserva }}</h3>
-      <span class="status">Confirmada</span> 
+      <span class="status">Confirmada</span>
     </div>
     <div class="card-body">
-      <p><strong>Usuário ID:</strong> {{ reserva.usuario_id }}</p>
+      <p><strong>Usuário:</strong> {{ nomeUsuario || 'Carregando...' }}</p>
       <p><strong>Quarto:</strong> {{ reserva.numero_quarto }}</p>
       <p><strong>Data da Reserva:</strong> {{ formatarData(reserva.data_reserva) }}</p>
       <p><strong>Check-in:</strong> {{ formatarData(reserva.check_in) }}</p>
@@ -26,11 +26,10 @@ export default {
     reserva: {
       type: Object,
       required: true,
-      // Validação básica para garantir que os campos esperados existam
       validator: (value) => {
         return (
           value.hasOwnProperty('id_reserva') &&
-          value.hasOwnProperty('usuario_id') &&
+          value.hasOwnProperty('usuario_id') && 
           value.hasOwnProperty('numero_quarto') &&
           value.hasOwnProperty('data_reserva') &&
           value.hasOwnProperty('check_in') &&
@@ -40,27 +39,31 @@ export default {
         );
       },
     },
+    nomeUsuario: {
+      type: String,
+      default: 'Nome desconhecido',
+    },
   },
   methods: {
     emitOpenPopup() {
-      // Emite um evento para o componente pai (ReservasPage) quando o card é clicado
       this.$emit('open-popup', this.reserva.id_reserva);
     },
     formatarData(dataString) {
       if (!dataString) return 'N/A';
-      // Converte a string de data para um objeto Date e formata para o padrão brasileiro
       try {
         const date = new Date(dataString);
+        if (isNaN(date.getTime())) {
+          return 'Data Inválida';
+        }
         const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
         return date.toLocaleDateString('pt-BR', options);
       } catch (e) {
-        console.error("Erro ao formatar data:", e);
-        return dataString; // Retorna a string original em caso de erro
+        console.error("Erro ao formatar data no ReservaCard:", e);
+        return dataString; 
       }
     },
     formatarPreco(preco) {
         if (preco === null || preco === undefined) return '0,00';
-        // Converte para número e formata com duas casas decimais, usando vírgula para decimal
         return parseFloat(preco).toFixed(2).replace('.', ',');
     }
   },
@@ -68,7 +71,6 @@ export default {
 </script>
 
 <style scoped>
-/* Estilos similares ao UsuarioCard, mas com cores adaptadas para Reservas */
 .reserva-card {
   background-color: #fff;
   border-radius: 10px;
@@ -79,6 +81,7 @@ export default {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  min-width: 280px; 
 }
 
 .reserva-card:hover {

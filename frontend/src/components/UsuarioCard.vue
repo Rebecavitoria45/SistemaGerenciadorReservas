@@ -1,37 +1,33 @@
 <template>
   <div class="usuario-card" @click="emitOpenPopup">
-    <div class="card-image-container">
-      <img src="https://via.placeholder.com/200x150/F8F8F8/000000?text=Usuário" alt="Foto do Usuário" class="card-image">
-    </div>
-    <div class="card-content">
-      <h3 class="card-title">{{ usuario.nome }}</h3>
-      <p class="card-detail">Email: <strong>{{ usuario.email }}</strong></p>
+    <div class="card-header">
+      <h3>Usuário #{{ usuario.usuario_id }}</h3>
       </div>
-    <div class="card-actions">
-      <button class="details-button">Ver Detalhes</button>
+    <div class="card-body">
+      <p><i class="bi bi-person"></i> <strong>Nome:</strong> {{ usuario.nome }}</p>
+      <p><i class="bi bi-envelope"></i> <strong>Email:</strong> {{ usuario.email }}</p>
+      </div>
+    <div class="card-footer">
+      <button @click.stop="emitOpenPopup">Ver Detalhes</button>
     </div>
   </div>
 </template>
 
 <script>
 export default {
+  name: 'UsuarioCard',
   props: {
     usuario: {
       type: Object,
       required: true,
-      // Validador simples para ajudar a depurar (remova em produção se não quiser)
       validator: (value) => {
-        if (!value.usuario_id || typeof value.nome !== 'string' || typeof value.email !== 'string') {
-          console.error("Erro de validação em UsuarioCard: Prop 'usuario' não tem formato esperado.", value);
-          return false;
-        }
-        return true;
+        const requiredProps = ['usuario_id', 'nome', 'email'];
+        return requiredProps.every(prop => value.hasOwnProperty(prop));
       }
     },
   },
   methods: {
     emitOpenPopup() {
-      // Usamos 'usuario_id' que é o nome da chave primária do seu backend
       this.$emit('open-popup', this.usuario.usuario_id);
     },
   },
@@ -39,96 +35,109 @@ export default {
 </script>
 
 <style scoped>
-/* Seus estilos CSS originais (não alterados) */
 .usuario-card {
-  background-color: #ffffff;
+  background-color: #fff;
   border-radius: 10px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-  cursor: pointer;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  min-width: 250px;
-  max-width: 350px;
-  margin: auto;
+  justify-content: space-between;
+  min-width: 280px;
+  max-width: 320px;
+  margin: 10px;
 }
 
 .usuario-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  transform: translateY(-5px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
 }
 
-.card-image-container {
-  width: 100%;
-  padding-bottom: 75%;
-  position: relative;
-  overflow: hidden;
-  border-bottom: 1px solid #eee;
-}
-
-.card-image {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.card-content {
+.card-header {
+  background-color: #4CAF50;
+  color: white;
   padding: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.card-header h3 {
+  margin: 0;
+  font-size: 1.3em;
+}
+
+.card-header .status {
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-size: 0.8em;
+  font-weight: bold;
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+.card-header .status.ativo {
+  background-color: #28a745;
+}
+
+.card-header .status.inativo {
+  background-color: #dc3545;
+}
+
+.card-body {
+  padding: 20px;
   flex-grow: 1;
 }
 
-.card-title {
-  font-size: 1.4em;
-  color: #2c3e50;
-  margin-top: 0;
-  margin-bottom: 10px;
-  font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.card-detail {
+.card-body p {
+  margin: 8px 0;
   font-size: 0.95em;
-  color: #555;
-  margin-bottom: 5px;
-  line-height: 1.4;
+  color: #333;
+  display: flex;
+  align-items: center;
 }
 
-.card-detail strong {
-  color: #1a73e8;
-}
-
-.card-actions {
-  padding: 15px;
-  border-top: 1px solid #eee;
+.card-body p i { 
+  margin-right: 10px;
+  color: #6c757d;
+  width: 18px;
   text-align: center;
 }
 
-.details-button {
-  background-color: #4CAF50;
-  color: white;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 1em;
-  transition: background-color 0.3s ease, transform 0.2s ease;
-  width: 100%;
+.card-body p strong {
+  color: #2c3e50;
+  font-weight: 600;
 }
 
-.details-button:hover {
-  background-color: #45a049;
-  transform: translateY(-2px);
+.card-footer {
+  padding: 15px;
+  background-color: #f8f8f8;
+  border-top: 1px solid #eee;
+  text-align: right;
+}
+
+.card-footer button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.9em;
+  transition: background-color 0.3s ease;
+}
+
+.card-footer button:hover {
+  background-color: #0056b3;
 }
 
 @media (max-width: 768px) {
   .usuario-card {
-    max-width: none;
+    max-width: 90%;
+    margin-left: auto;
+    margin-right: auto;
   }
 }
 </style>

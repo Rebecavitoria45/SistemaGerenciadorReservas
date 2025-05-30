@@ -1,11 +1,11 @@
 <template>
   <div class="dashboard-header">
     <div class="left-section">
-      <h2 class="dashboard-title">Dashboard</h2>
-      <span class="dashboard-date">18 de maio de 2025</span>
+      <h2 class="dashboard-greeting">{{ greetingMessage }}, {{ userName }}</h2>
+      <span class="dashboard-date">{{ formattedDate }}</span>
     </div>
     <div class="middle-section">
-    </div>
+      </div>
     <div class="right-section">
       <div class="time">
         <i class="bi bi-clock"></i>
@@ -22,8 +22,8 @@
           <i class="bi bi-person-circle"></i>
         </div>
         <div class="user-details">
-          <span class="user-name">Clodoaldo</span>
-          <span class="user-role">Admin</span>
+          <span class="user-name">{{ userName }}</span>
+          <span class="user-role">{{ userRole }}</span>
         </div>
       </div>
     </div>
@@ -53,17 +53,26 @@
 </template>
 
 <script>
-import { ref, onMounted, onUnmounted } from 'vue';
-import InfoCard from './InfoCard.vue';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
+import InfoCard from './InfoCard.vue'; 
 
 export default {
-  name: 'SimpleDashboardHeader',
+  name: 'NavbarSuperior', 
   components: {
     InfoCard,
   },
+  props: {
+    expanded: {
+      type: Boolean,
+      required: true,
+    },
+  },
   setup() {
     const currentTime = ref('');
+    const userName = ref(' Clodoaldo');
+    const userRole = ref('Admin'); 
     let intervalId;
+
     const showNotifications = ref(false);
     const showMessages = ref(false);
     const notifications = ref([]);
@@ -77,6 +86,24 @@ export default {
       currentTime.value = `${hours}:${minutes}:${seconds}`;
     };
 
+    const getGreetingMessage = () => {
+      const now = new Date();
+      const hour = now.getHours();
+      if (hour >= 5 && hour < 12) {
+        return 'Bom dia';
+      } else if (hour >= 12 && hour < 18) {
+        return 'Boa tarde';
+      } else {
+        return 'Boa noite';
+      }
+    };
+
+    const getFormattedDate = () => {
+      const now = new Date();
+      const options = { year: 'numeric', month: 'long', day: 'numeric' };
+      return now.toLocaleDateString('pt-BR', options);
+    };
+
     const toggleNotifications = () => {
       showNotifications.value = !showNotifications.value;
       showMessages.value = false;
@@ -88,10 +115,10 @@ export default {
     };
 
     const handleClickOutside = (event) => {
-      const notificationCard = document.querySelector('.info-card:first-of-type'); 
-      const messageCard = document.querySelector('.info-card:last-of-type'); 
-      const bellIcon = document.querySelector('.bi-bell').parentNode;
-      const envelopeIcon = document.querySelector('.bi-envelope').parentNode;
+      const notificationCard = document.querySelector('.info-card:first-of-type');
+      const messageCard = document.querySelector('.info-card:last-of-type');
+      const bellIcon = document.querySelector('.bi-bell')?.parentNode; 
+      const envelopeIcon = document.querySelector('.bi-envelope')?.parentNode; 
 
       if (showNotifications.value && notificationCard && !notificationCard.contains(event.target) && event.target !== bellIcon) {
         showNotifications.value = false;
@@ -127,20 +154,43 @@ export default {
       document.removeEventListener('click', handleClickOutside);
     });
 
-    return { currentTime, showNotifications, showMessages, toggleNotifications, toggleMessages, notifications, messages };
+    return {
+      currentTime,
+      userName,
+      userRole,
+      greetingMessage: computed(getGreetingMessage),
+      formattedDate: computed(getFormattedDate),    
+      showNotifications,
+      showMessages,
+      toggleNotifications,
+      toggleMessages,
+      notifications,
+      messages
+    };
   },
 };
-
 </script>
 
-  <style scoped>
+<style scoped>
 .dashboard-header {
-  background-color: #f8f9fa;
-  padding: 0.8rem 2rem; 
+  background-color: transparent; 
+  padding: 1rem 1.5rem; 
   display: flex;
   align-items: center;
-  justify-content: space-between; 
-  border-bottom: 1px solid #eee;
+  justify-content: space-between;
+  position: relative;
+  z-index: 1000; 
+}
+
+.dashboard-header::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 1.5rem; 
+  right: 1.5rem; 
+  height: 1px; 
+  background-color: #e0e0e0; 
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.05); 
 }
 
 .left-section {
@@ -148,15 +198,17 @@ export default {
   flex-direction: column;
 }
 
-.dashboard-title {
-  font-size: 1.5rem;
-  margin-bottom: 0.1rem;
+.dashboard-greeting {
+  font-family: 'Poppins', sans-serif; 
+  font-size: 1.7rem;
+  margin-bottom: 0.2rem; 
   color: #333;
-  font-weight: bold;
+  font-weight: 600; 
 }
 
 .dashboard-date {
-  font-size: 0.85rem; 
+  font-family: 'Inter', sans-serif; 
+  font-size: 0.95rem; 
   color: #777;
 }
 
@@ -167,64 +219,77 @@ export default {
 .right-section {
   display: flex;
   align-items: center;
+  gap: 1.2rem; 
 }
 
 .time {
   display: flex;
   align-items: center;
-  margin-right: 1rem;
   color: #555;
-  font-size: 0.85rem; 
+  font-size: 0.9rem; 
+  font-family: 'Inter', sans-serif; 
 }
 
 .time i {
-  margin-right: 0.3rem;
-  font-size: 1rem;
+  margin-right: 0.4rem; 
+  font-size: 1.1rem; 
 }
 
 .icon-button {
   background: none;
   border: none;
-  padding: 0.4rem;
-  margin-right: 0.5rem;
+  padding: 0.6rem; 
+  border-radius: 50%; 
   cursor: pointer;
-  font-size: 1rem; 
+  font-size: 1.1rem; 
   color: #555;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.icon-button:hover {
+  background-color: rgba(0, 0, 0, 0.05); 
+  color: #000;
 }
 
 .user-info {
   display: flex;
   align-items: center;
+  margin-left: 1rem; 
 }
 
 .user-avatar {
-  width: 28px; 
-  height: 28px;
+  width: 35px; 
+  height: 35px;
   border-radius: 50%;
-  background-color: #ddd; 
+  background-color: #ddd;
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-right: 0.5rem;
+  margin-right: 0.7rem; 
   color: #fff;
-  font-size: 0.9rem;
+  font-size: 1.1rem; 
 }
 
 .user-avatar i {
-  font-size: 1.2rem; 
+  font-size: 1.6rem;
   color: #777;
 }
 
 .user-details {
   display: flex;
   flex-direction: column;
-  font-size: 0.8rem; 
   color: #333;
   text-align: right;
+  font-family: 'Inter', sans-serif; 
 }
 
 .user-name {
-  font-weight: bold;
+  font-size: 0.95rem; 
+  font-weight: 600; 
+}
+
+.user-role {
+  font-size: 0.8rem; 
+  color: #888;
 }
 </style>
-

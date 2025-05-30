@@ -1,93 +1,184 @@
 <template>
-  <div class="forgot-password-container">
-    <AuthForm
-      title="Esqueci Minha Senha"
-      buttonText="Enviar Link de Reset"
-      :showPassword="false" :showForgot="false"
-      altText="Voltar para o Login"
-      altLink="/login"
-      @submit="handleForgotPassword"
-    />
-    <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
-    <p v-if="successMessage" class="success-message">{{ successMessage }}</p>
+  <div class="auth-container">
+    <div class="auth-card">
+      <h2>Esqueceu sua senha?</h2>
+      <p class="text-info">Digite seu email e enviaremos um link para redefinir sua senha.</p>
+      <form @submit.prevent="handleForgotPassword">
+        <div class="form-group">
+          <label for="email">Email:</label>
+          <input type="email" id="email" v-model="email" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-primary" :disabled="loading">
+          {{ loading ? 'Enviando...' : 'Enviar Link' }}
+        </button>
+        <p v-if="message" :class="{'success-message': !error, 'error-message': error}">{{ message }}</p>
+      </form>
+      <div class="auth-links">
+        <router-link to="/login">Voltar para o Login</router-link>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
-import axios from 'axios';
-import AuthForm from '../components/AuthForm.vue'; // Ajuste o caminho
-
 export default {
   name: 'ForgotPasswordView',
-  components: {
-    AuthForm,
-  },
   data() {
     return {
-      errorMessage: '',
-      successMessage: '',
+      email: '',
+      loading: false,
+      message: null,
+      error: false,
     };
   },
   methods: {
-    async handleForgotPassword(formData) {
-      this.errorMessage = '';
-      this.successMessage = '';
+    async handleForgotPassword() {
+      this.loading = true;
+      this.message = null;
+      this.error = false;
 
-      try {
-        // Envia o email para o backend solicitar o link de reset
-        const response = await axios.post('/api/auth/forgot-password', {
-          email: formData.email,
-        });
-
-        this.successMessage = response.data.message || 'Se o e-mail estiver cadastrado, um link para redefinir a senha foi enviado.';
-        console.log('Solicitação de reset de senha enviada:', response.data);
-
-        // Opcional: Redirecionar o usuário ou limpar o formulário
-        // this.$router.push('/login');
-
-      } catch (error) {
-        console.error('Erro ao solicitar reset de senha:', error);
-        if (error.response) {
-          this.errorMessage = error.response.data.message || 'Erro ao processar sua solicitação. Tente novamente.';
+      setTimeout(() => {
+        if (this.email.includes('@')) {
+          this.message = 'Se um email com ' + this.email + ' for encontrado, um link de redefinição foi enviado.';
+          this.error = false;
+          this.email = '';
         } else {
-          this.errorMessage = 'Não foi possível conectar ao servidor. Verifique sua conexão.';
+          this.message = 'Por favor, insira um email válido.';
+          this.error = true;
         }
-      }
+        this.loading = false;
+      }, 2000);
     },
   },
 };
 </script>
 
 <style scoped>
-.forgot-password-container {
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%; 
+  width: 100%;  
+  overflow-x: hidden;
+  font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; 
+  -webkit-font-smoothing: antialiased; 
+  -moz-osx-font-smoothing: grayscale;
+  background-image: url('../assets/back.jpeg'); 
+  background-size: cover; 
+  background-position: center center; 
+  background-repeat: no-repeat; 
+  background-attachment: fixed; 
+}
+
+.auth-container {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: calc(100vh - 60px);
-  background-color: #f0f2f5;
-  padding: 20px;
+  justify-content: center; 
+  align-items: center;    
+  min-height: 100vh;    
+  width: 100vw;            
+  box-sizing: border-box; 
+  padding: 20px; 
 }
 
+.auth-card {
+  background-color: #ffffff; 
+  padding: 40px 30px; 
+  border-radius: 12px; 
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1); 
+  width: 100%; 
+  max-width: 420px;
+  text-align: center;
+}
+
+.auth-card h2 {
+  margin-bottom: 30px; 
+  color: #333333; 
+  font-size: 2rem; 
+  font-weight: 600; 
+}
+
+.form-group {
+  margin-bottom: 20px; 
+  text-align: left;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 10px; 
+  color: #555555; 
+  font-weight: 500;
+  font-size: 0.95rem; 
+}
+
+.form-control {
+  width: 100%; 
+  padding: 14px 15px; 
+  border: 1px solid #cccccc; 
+  border-radius: 8px; 
+  font-size: 1.05rem; 
+  color: #333333; 
+  box-sizing: border-box; 
+  transition: border-color 0.2s ease, box-shadow 0.2s ease; 
+}
+
+.form-control:focus {
+  border-color: #007bff; 
+  outline: none; 
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.2); 
+}
+
+.btn-primary {
+  width: 100%; 
+  padding: 15px 20px; 
+  background-color: #007bff;
+  color: #ffffff; 
+  border: none; 
+  border-radius: 8px;
+  font-size: 1.15rem; 
+  font-weight: 600; 
+  cursor: pointer; 
+  transition: background-color 0.3s ease, transform 0.2s ease; 
+  margin-top: 25px; 
+}
+
+.btn-primary:hover {
+  background-color: #0056b3; 
+  transform: translateY(-2px); 
+}
+
+.btn-primary:active {
+  background-color: #004085; 
+  transform: translateY(0); 
+}
+
+.btn-primary:disabled {
+  background-color: #a0c9f1; 
+  cursor: not-allowed;
+  transform: none; 
+}
 .error-message {
-  color: #d32f2f;
-  background-color: #ffebee;
-  border: 1px solid #ef9a9a;
-  padding: 10px 15px;
-  border-radius: 8px;
-  margin-top: 20px;
-  text-align: center;
+  color: #dc3545; 
+  margin-top: 15px; 
   font-size: 0.9rem;
+  text-align: center; 
 }
 
-.success-message {
-  color: #388e3c;
-  background-color: #e8f5e9;
-  border: 1px solid #a5d6a7;
-  padding: 10px 15px;
-  border-radius: 8px;
-  margin-top: 20px;
-  text-align: center;
-  font-size: 0.9rem;
+.auth-links {
+  margin-top: 30px; 
+  font-size: 0.95rem; 
 }
+
+.auth-links a {
+  color: #007bff; 
+  text-decoration: none; 
+  display: block; 
+  margin-bottom: 10px; 
+  transition: text-decoration 0.2s ease; 
+}
+
+.auth-links a:hover {
+  text-decoration: underline;
+}
+
 </style>

@@ -16,8 +16,7 @@
             :to="item.path"
             class="nav-link"
             active-class="active"
-            exact
-            @click="handleNavigationClick"
+            exact @click="closeSidebar"
           >
             <i :class="item.icon" class="me-2"></i>
             <span>{{ item.label }}</span>
@@ -51,7 +50,6 @@
 <script>
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import axios from 'axios'; // Importe o Axios
 
 export default {
   name: 'Sidebar',
@@ -70,24 +68,21 @@ export default {
     const openSidebar = () => { isOpen.value = true; };
     const closeSidebar = () => { isOpen.value = false; };
 
-    const handleNavigationClick = (event) => {
+    const handleNavigationClick = () => {
       setTimeout(() => {
         closeSidebar();
-      }, 200); 
-      document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
-      event.currentTarget.classList.add('active');
+      }, 200);
     };
 
-    // --- Nova Função de Logout ---
     const handleLogout = async () => {
       try {
-     
+
         console.log('Logout realizado no frontend.');
 
         localStorage.removeItem('userToken');
-       
+
         router.push('/login');
-        
+
         closeSidebar();
 
       } catch (error) {
@@ -102,9 +97,7 @@ export default {
 };
 </script>
 
-
 <style scoped>
-/* Seus estilos CSS permanecem os mesmos */
 .sidebar-container {
   position: fixed;
   top: 0;
@@ -125,7 +118,7 @@ export default {
 }
 
 .sidebar-header {
-  padding: 1rem 1rem 0.5rem;
+  padding: 1.5rem 1.5rem 1rem; 
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -138,68 +131,90 @@ export default {
 }
 
 .logo-img {
-  width: 40px;
+  width: 50px; 
   height: auto;
 }
 
 .btn-close {
   background: none;
   border: none;
-  font-size: 1.3rem;
-  color: #333;
+  font-size: 1.5rem; 
+  color: #6c757d; 
   cursor: pointer;
+  transition: color 0.2s ease;
 }
+
+.btn-close:hover {
+  color: #343a40; 
+}
+
 
 .sidebar-body {
   flex-grow: 1;
   overflow-y: auto;
+  padding-top: 1rem; 
 }
 
 .nav-link {
-  padding: 0.75rem 1rem;
-  color: #333;
+  padding: 1rem 1.5rem; 
+  color: #333; 
   display: flex;
   align-items: center;
   text-decoration: none;
-  transition: background-color 0.2s;
-  font-size: 0.9rem;
+  transition: background-color 0.2s, color 0.2s, font-weight 0.2s;
+  font-size: 1rem; 
+  font-family: 'Inter', sans-serif; 
+  font-weight: 400; 
 }
 
-.nav-link:hover,
-.nav-link.active {
-  background-color: #f0f0f0;
-  font-weight: bold;
-  color: #000;
+.nav-link:hover {
+  background-color: #e9ecef;
+  font-weight: 600; 
+  color: #007bff; 
 }
+
+.nav-link.active {
+  background-color: #e0e0e0; 
+  font-weight: 700; 
+  color: #007bff;
+}
+
+.nav-link i { 
+    margin-right: 10px;
+    font-size: 1.1rem;
+}
+
 
 .sidebar-footer {
-  padding: 1rem;
+  padding: 1.5rem; 
   border-top: 1px solid #eee;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  font-family: 'Inter', sans-serif; 
 }
 
 .footer-divider {
   width: 100%;
-  margin-bottom: 0.5rem;
+  margin-bottom: 1rem; 
 }
 
 .user-info {
   display: flex;
   align-items: center;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
 }
 
 .user-avatar {
-  width: 30px;
-  height: 30px;
+  width: 35px; 
+  height: 35px; 
   background-color: #ccc;
   border-radius: 50%;
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-right: 0.5rem;
+  margin-right: 0.75rem; 
+  font-size: 1.1rem; 
 }
 
 .user-details {
@@ -208,31 +223,31 @@ export default {
 }
 
 .user-name {
-  font-size: 0.8rem;
-  font-weight: bold;
+  font-size: 0.9rem; 
+  font-weight: 600;
+  color: #333;
 }
 
 .user-role {
-  font-size: 0.7rem;
+  font-size: 0.8rem;
   color: #888;
 }
 
 .logout-link {
-  font-size: 0.75rem;
+  font-size: 0.9rem; 
   color: #888;
   text-decoration: none;
   display: flex;
   align-items: center;
-  /* Adicionado para que o link de logout ocupe a largura do footer */
   width: 100%;
-  padding: 0.5rem 0;
+  padding: 0.75rem 0; 
   border-radius: 4px;
-  transition: background-color 0.2s;
+  transition: background-color 0.2s, color 0.2s;
 }
 
 .logout-link:hover {
-  color: #000;
-  background-color: #f0f0f0;
+  color: #dc3545; 
+  background-color: #ffebeb;
 }
 
 .open-sidebar-btn {
@@ -240,14 +255,20 @@ export default {
   top: 1rem;
   left: 1rem;
   z-index: 1051;
-  background-color: #0d6efd;
+  background-color: #6c757d;
   color: white;
   border: none;
-  padding: 0.5rem 0.75rem;
+  padding: 0.6rem 0.9rem; 
   border-radius: 0.375rem;
-  font-size: 1.2rem;
+  font-size: 1.3rem;
   display: flex;
   align-items: center;
   justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.open-sidebar-btn:hover {
+  background-color: #5a6268; 
 }
 </style>

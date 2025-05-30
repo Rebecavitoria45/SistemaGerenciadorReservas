@@ -4,7 +4,7 @@
       <slot name="icone"></slot>
     </div>
     <div class="card-info">
-      <span class="card-value">{{ valorContagem }}</span>
+      <span class="card-value">{{ formatarContagem(valor) }}</span>
       <span class="card-label">{{ titulo }}</span>
       <span class="card-sublabel">{{ descricao }}</span>
     </div>
@@ -12,51 +12,31 @@
 </template>
 
 <script>
-import axios from 'axios'; 
-
 export default {
-  name: 'CardContador', 
+  name: 'CardContador',
   props: {
     titulo: String,
     descricao: String,
-    cor: String, 
-    endpoint: { 
-      type: String,
-      required: true,
-    },
-    propriedadeContagem: { 
-      type: String,
-      default: 'total', 
+    cor: String,
+    valor: {
+      type: [Number, String],
+      default: 'Carregando...',
     },
   },
   data() {
-    return {
-      valorContagem: 'Carregando...', // Valor inicial enquanto a API busca
-    };
-  },
-  watch: {
-    endpoint: 'fetchContagem',
+    return {};
   },
   methods: {
-    async fetchContagem() {
-      this.valorContagem = 'Carregando...'; 
-      try {
-        const response = await axios.get(this.endpoint);
-        this.valorContagem = response.data[this.propriedadeContagem] || 0;
-      } catch (error) {
-        console.error(`Erro ao carregar dados do endpoint ${this.endpoint}:`, error);
-        this.valorContagem = 'Erro'; // Exibe "Erro" em caso de falha
+    formatarContagem(value) {
+      if (typeof value === 'number') {
+        return value.toLocaleString('pt-BR');
       }
+      return value;
     },
-  },
-  mounted() {
-    this.fetchContagem(); 
   },
 };
 </script>
-
 <style scoped>
-
 .card {
   border-radius: 12px;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
@@ -64,7 +44,7 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  width: calc(33.33% - 18px); /* Ajuste o width conforme o cards-container */
+  width: calc(33.33% - 18px); 
   box-sizing: border-box;
   transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
@@ -74,7 +54,7 @@ export default {
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
 }
 
-/* Cores de fundo */
+/* Cores de fundo mantidas */
 .bg-lilac {
   background-color: #F3E8FF;
 }
@@ -85,7 +65,6 @@ export default {
   background-color: #D1FAE5;
 }
 
-/* Estilos de ícone */
 .card-icon-wrapper {
   margin-bottom: 16px;
 }
@@ -93,9 +72,10 @@ export default {
 .card-icon {
   width: 36px;
   height: 36px;
-  font-size: 24px; /* Ajuste se necessário para o ícone */
+  font-size: 24px;
 }
 
+/* Cores dos ícones mantidas */
 .bg-lilac .card-icon {
   color: #7E22CE;
 }
@@ -106,7 +86,6 @@ export default {
   color: #059669;
 }
 
-/* Informações do card */
 .card-info {
   display: flex;
   flex-direction: column;
@@ -114,6 +93,7 @@ export default {
 }
 
 .card-value {
+  font-family: 'Poppins', sans-serif; /* APLICANDO POPEINS AQUI */
   font-size: 2.25rem;
   font-weight: 700;
   color: #1F2937;
@@ -121,6 +101,7 @@ export default {
 }
 
 .card-label {
+  font-family: 'Inter', sans-serif; /* APLICANDO INTER AQUI */
   color: #4B5563;
   font-size: 0.9rem;
   margin-top: 4px;
@@ -128,6 +109,7 @@ export default {
 }
 
 .card-sublabel {
+  font-family: 'Inter', sans-serif; /* APLICANDO INTER AQUI */
   color: #6B7280;
   font-size: 0.75rem;
   margin-top: 4px;
