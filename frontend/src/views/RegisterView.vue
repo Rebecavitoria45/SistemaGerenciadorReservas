@@ -65,7 +65,7 @@ export default {
       }
 
       try {
-        const response = await roomsApi.post('/cadastrar', {
+        const response = await userApi.post('/cadastrar', {
           nome: this.nome, 
           email: this.email,
           senha: this.senha,
