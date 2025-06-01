@@ -60,6 +60,7 @@
 </template>
 
 <script>
+
 export default {
   name: 'ModalQuarto', 
   props: {
@@ -114,7 +115,7 @@ export default {
 
     handleDelete() {
       if (confirm(`Tem certeza que deseja deletar o quarto #${this.currentQuarto.numero_quarto}?`)) {
-        this.$emit('deleteQuarto', this.currentQuarto.numero_quarto); // Emite para o pai deletar
+        this.$emit('deleteQuarto', this.currentQuarto.numero_quarto); 
         this.closeModal();
       }
     },

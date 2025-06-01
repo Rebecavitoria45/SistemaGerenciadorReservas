@@ -54,11 +54,8 @@
 </template>
 
 <script>
-import axios from 'axios';
+import { userApi, roomsApi } from '../../utils/axios'; 
 
-const api = axios.create({
-  baseURL: 'http://localhost:3004',
-});
 
 export default {
   name: 'UserModal',
@@ -112,7 +109,7 @@ export default {
     },
     async handleSubmit() {
       try {
-        await api.put(`/atualizar/${this.currentUser.usuario_id}`, this.currentUser);
+        await userApi.put(`/atualizar/${this.currentUser.usuario_id}`, this.currentUser);
         alert('Usuário atualizado com sucesso!');
         this.closeModal();
       } catch (error) {
@@ -123,7 +120,7 @@ export default {
     async handleDelete() {
       if (confirm(`Tem certeza que deseja excluir o usuário #${this.currentUser.usuario_id} - ${this.currentUser.nome}?`)) {
         try {
-          await api.delete(`/deletar/${this.currentUser.usuario_id}`);
+          await userApi.delete(`/deletar/${this.currentUser.usuario_id}`);
           alert('Usuário excluído com sucesso!');
           this.closeModal();
         } catch (error) {

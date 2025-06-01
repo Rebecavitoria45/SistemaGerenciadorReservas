@@ -78,7 +78,6 @@
                 :id="field"
                 v-model.number="currentReserva[field]"
                 :min="field === 'numero_pessoas' ? 1 : null"
-                :step="field === 'preco_reserva' ? 0.01 : 1"
                 class="form-control" required
               />
             </div>
@@ -107,10 +106,8 @@
 </template>
 
 <script>
-import axios from 'axios';
 
-const apiUsuarios = axios.create({ baseURL: 'http://localhost:3004' });
-const apiQuartos = axios.create({ baseURL: 'http://localhost:3002' });
+import { userApi, roomsApi } from '../../utils/axios';
 
 export default {
   name: 'ReservaModal',
@@ -128,7 +125,6 @@ export default {
         check_in: '',
         check_out: '',
         numero_pessoas: 1,
-        preco_reserva: 0.0,
       },
       isEditing: false,
       users: [],
@@ -140,7 +136,6 @@ export default {
         check_in: 'Check-in',
         check_out: 'Check-out',
         numero_pessoas: 'Número de Pessoas',
-        preco_reserva: 'Preço da Reserva',
       },
     };
   },
@@ -205,7 +200,6 @@ export default {
           check_out: this.formatDateForInput(this.reservaToEdit.check_out),
           
           numero_pessoas: Number(this.reservaToEdit.numero_pessoas),
-          preco_reserva: Number(this.reservaToEdit.preco_reserva),
         };
       }
       
@@ -213,7 +207,7 @@ export default {
     async fetchUsers() {
       this.loadingUsers = true;
       try {
-        const response = await apiUsuarios.get('/listar');
+        const response = await userApi.get('/listar');
         this.users = Array.isArray(response.data) ? response.data : [];
         console.log("Usuários carregados:", this.users);
       } catch (error) {
@@ -226,7 +220,7 @@ export default {
     async fetchQuartos() {
       this.loadingQuartos = true;
       try {
-        const response = await apiQuartos.get('/listar');
+        const response = await roomsApi.get('/listar');
         this.quartos = Array.isArray(response.data) ? response.data : []; 
         console.log("Quartos carregados:", this.quartos);
       } catch (error) {
@@ -256,7 +250,6 @@ export default {
         check_in: '',
         check_out: '',
         numero_pessoas: 1,
-        preco_reserva: 0.0,
       };
       this.isEditing = false;
     },
@@ -265,7 +258,6 @@ export default {
   r.usuario_id = Number(r.usuario_id);
   r.numero_quarto = Number(r.numero_quarto);
   r.numero_pessoas = Number(r.numero_pessoas);
-  r.preco_reserva = Number(r.preco_reserva);
 
   if (!r.usuario_id || !r.numero_quarto || !r.data_reserva || !r.check_in || !r.check_out) {
     return alert('Preencha todos os campos obrigatórios.');

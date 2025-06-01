@@ -24,11 +24,9 @@
 <script>
 import UsuarioCard from '@/components/UsuarioCard.vue';
 import UsuarioModal from '../components/modals/ModalUser.vue'; 
-import axios from 'axios';
+import { userApi, roomsApi, reservationApi } from '../utils/axios';
 
-const api = axios.create({
-  baseURL: 'http://localhost:3004', 
-});
+
 
 export default {
   name: 'UsuariosPage',
@@ -54,7 +52,7 @@ export default {
         this.loading = true;
         this.error = null;
 
-        const response = await api.get('/listar'); 
+        const response = await userApi.get('/listar'); 
 
         if (Array.isArray(response.data)) {
           this.usuarios = response.data;

@@ -25,11 +25,8 @@
 </template>
 
 <script>
-import axios from 'axios';
+import { userApi, roomsApi, reservationApi } from '../utils/axios'; 
 
-const apiAuth = axios.create({
-  baseURL: 'http://localhost:3004', 
-});
 
 export default {
   name: 'LoginView',
@@ -46,7 +43,7 @@ export default {
       this.loading = true;
       this.error = null;
       try {
-        const response = await apiAuth.post('/login', {
+        const response = await userApi.post('/login', {
           email: this.email,
           senha: this.senha,
         });

@@ -42,13 +42,12 @@
 </template>
 
 <script>
+import axios from 'axios';
 import QuartoCard from '@/components/quartoCard.vue'; 
 import QuartoModal from '@/components/modals/ModalQuarto.vue'; 
-import axios from 'axios';
+import { userApi, roomsApi, reservationApi } from '../utils/axios';
 
-const apiQuartos = axios.create({
-  baseURL: 'http://localhost:3002', 
-});
+
 
 export default {
   name: 'QuartosPage',
@@ -87,7 +86,7 @@ export default {
         this.error = null;
 
         const timestamp = new Date().getTime(); 
-        const response = await apiQuartos.get(`/listar?_=${timestamp}`); 
+        const response = await roomsApi.get(`/listar?_=${timestamp}`); 
 
         if (Array.isArray(response.data)) {
           this.quartos = response.data;
@@ -130,7 +129,7 @@ export default {
     },
     async handleCreateQuarto(newQuartoData) {
       try {
-        await apiQuartos.post('/cadastrar', newQuartoData);
+        await roomsApi.post('/cadastrar', newQuartoData);
         alert('Quarto criado com sucesso!');
         this.fetchQuartos(); 
       } catch (err) {
@@ -140,7 +139,7 @@ export default {
     },
     async handleUpdateQuarto(updatedQuartoData) {
       try {
-        await apiQuartos.put(`/atualizar/${updatedQuartoData.numero_quarto}`, updatedQuartoData); 
+        await roomsApi.put(`/atualizar/${updatedQuartoData.numero_quarto}`, updatedQuartoData); 
         alert('Quarto atualizado com sucesso!');
         this.fetchQuartos(); 
       } catch (err) {
@@ -150,7 +149,7 @@ export default {
     },
     async handleDeleteQuarto(quartoNumber) {
       try {
-        await apiQuartos.delete(`/deletar/${quartoNumber}`); 
+        await roomsApi.delete(`/deletar/${quartoNumber}`); 
         alert('Quarto deletado com sucesso!');
         this.fetchQuartos(); 
       } catch (err) {

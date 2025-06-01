@@ -10,11 +10,18 @@ module.exports = {Reserva};
 const { connectRabbitMQ } = require('./utils/rabbitmq');
 
 const app = express();
+
+
+const allowedOrigins = process.env.FRONTEND_URLS
+  ? process.env.FRONTEND_URLS.split(',').map(url => url.trim())
+  : [];
+
 app.use(cors({
-  // Mude para um array para permitir múltiplas origens
-  origin: ['http://localhost:8080', 'http://localhost:8081'], 
+  origin: allowedOrigins,
   credentials: true
 }));
+
+
 
 app.use(express.json());
 connectRabbitMQ();

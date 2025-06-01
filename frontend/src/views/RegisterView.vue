@@ -31,11 +31,9 @@
   </div>
 </template>
 <script>
-import axios from 'axios';
 
-const apiAuth = axios.create({
-  baseURL: 'http://localhost:3004', 
-});
+import { userApi, roomsApi, reservationApi } from '../utils/axios';
+
 
 export default {
   name: 'RegisterView',
@@ -67,7 +65,7 @@ export default {
       }
 
       try {
-        const response = await apiAuth.post('/cadastrar', {
+        const response = await roomsApi.post('/cadastrar', {
           nome: this.nome, 
           email: this.email,
           senha: this.senha,

@@ -40,9 +40,9 @@
 </template>
 
 <script>
-import axios from 'axios';
 import CardContador from '../components/Cards.vue';
 import ListagemReservas from '../components/listaReservas.vue';
+import { userApi, roomsApi, reservationApi } from '../utils/axios';
 
 export default {
   name: 'HomeView',
@@ -71,13 +71,13 @@ export default {
 
     async fetchAllCounts() {
       try {
-        const reservasResponse = await axios.get('http://localhost:3003/listar');
+        const reservasResponse = await reservationApi.get('/listar');
         this.totalReservas = this.getContagem(reservasResponse.data);
 
-        const quartosResponse = await axios.get('http://localhost:3002/listar');
+        const quartosResponse = await roomsApi.get('/listar');
         this.totalQuartos = this.getContagem(quartosResponse.data);
 
-        const usuariosResponse = await axios.get('http://localhost:3004/listar');
+        const usuariosResponse = await userApi.get('/listar');
         this.totalUsuarios = this.getContagem(usuariosResponse.data);
 
       } catch (error) {

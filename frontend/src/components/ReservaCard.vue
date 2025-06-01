@@ -39,9 +39,10 @@ export default {
         );
       },
     },
-    nomeUsuario: {
+    // Esta prop é o que o ReservasPage.vue passará
+    nomeUsuario: { 
       type: String,
-      default: 'Nome desconhecido',
+      default: 'Nome desconhecido', // Valor padrão caso não seja fornecido
     },
   },
   methods: {
@@ -69,6 +70,7 @@ export default {
   },
 };
 </script>
+
 
 <style scoped>
 .reserva-card {

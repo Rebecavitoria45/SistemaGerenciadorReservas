@@ -7,20 +7,22 @@ const Quarto = require('./models/quartoModel');
 const quartoRouter = require('./routers/quartoRouter')
 const consumirEventos = require('./consumer/quartoConsumer');
 
-module.exports = {Quarto};
+module.exports = { Quarto };
 
 const app = express();
 
+const allowedOrigins = process.env.FRONTEND_URLS
+  ? process.env.FRONTEND_URLS.split(',').map(url => url.trim())
+  : [];
+
 app.use(cors({
-  // Mude para um array para permitir múltiplas origens
-  origin: ['http://localhost:8080', 'http://localhost:8081'], 
+  origin: allowedOrigins,
   credentials: true
 }));
 
 app.use(express.json());
 
-app.use(quartoRouter)
-
+app.use(quartoRouter);
 
 async function connectWithRetry() {
   let connected = false;
@@ -32,7 +34,7 @@ async function connectWithRetry() {
       await sequelize.sync();
       app.listen(3000, () => {
         console.log('Quartos service rodando na porta 3000');
-      })
+      });
       consumirEventos();
     } catch (err) {
       console.log('Banco não disponível, tentando novamente em 5 segundos...');

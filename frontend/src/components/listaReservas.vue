@@ -42,16 +42,9 @@
 </template>
 
 <script>
-import axios from 'axios';
+import { userApi, reservationApi } from '../utils/axios';
+
 import { useRouter } from 'vue-router';
-
-const apiReservas = axios.create({
-  baseURL: 'http://localhost:3003',
-});
-
-const apiUsuarios = axios.create({
-  baseURL: 'http://localhost:3004',
-});
 
 export default {
   name: 'ListagemReservas',
@@ -70,7 +63,6 @@ export default {
   computed: {
     reservasComNomes() {
       return this.reservas.slice(0, this.limiteExibicao).map((reserva) => {
-        // Usa a propriedade correta para ID do usuário na reserva
         const usuarioId = reserva.usuario_id || reserva.id_usuario;
         return {
           ...reserva,
@@ -83,11 +75,10 @@ export default {
     async fetchReservasRecentes() {
       this.loading = true;
       try {
-        const response = await apiReservas.get('/listar');
+        const response = await reservationApi.get('/listar');
         this.reservas = response.data;
         console.log('[Reservas]', this.reservas);
 
-        // Extrai os IDs de usuário válidos das reservas
         const uniqueUsuarioIds = [...new Set(
           this.reservas
             .map(r => r.usuario_id || r.id_usuario)
@@ -95,7 +86,6 @@ export default {
         )];
         console.log('[IDs Usuário]', uniqueUsuarioIds);
 
-        // Busca nomes de usuário em paralelo
         await Promise.all(uniqueUsuarioIds.map(id => this.fetchNomeUsuario(id)));
 
       } catch (error) {
@@ -109,13 +99,12 @@ export default {
 
     async fetchNomeUsuario(usuarioId) {
       if (!usuarioId || this.usuarioNomes[usuarioId]) {
-        return; // já carregado ou ID inválido
+        return; 
       }
       try {
-        const response = await apiUsuarios.get(`/buscar/${usuarioId}`);
+        const response = await userApi.get(`/buscar/${usuarioId}`);
         const nome = response?.data?.usuario?.nome;
         if (nome) {
-          // Vue 3 aceita atribuição direta para reatividade
           this.usuarioNomes[usuarioId] = nome;
         } else {
           this.usuarioNomes[usuarioId] = 'Nome não encontrado';
