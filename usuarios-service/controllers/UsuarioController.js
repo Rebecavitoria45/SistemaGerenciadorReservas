@@ -1,54 +1,74 @@
 const Usuario = require('../models/usuarioModel')
-
+const bcrypt = require('bcrypt')
+const jwt = require('jsonwebtoken')
 require('dotenv').config();
 
-exports.cadastrarUsuario = async(req,res)=>{
-    try{
-            const  {nome,email, senha} = req.body;
-    
-            if(!nome) return res.status(422).json({msg:'Nome é obrigatório'})
-            if(!email) return res.status(422).json({msg:'Email é obrigatório'})   
-            if(!senha) return res.status(422).json({msg:'senha é obrigatório'})
-            
-            const usuarioexiste = await Usuario.findOne({where: {email: req.body.email}})
-            if(usuarioexiste) return   res.status(422).json({ error: 'Email já cadastrado' });
-    
-            const usuario = await Usuario.create({nome,email,senha})
-            res.status(201).json({msg:'Usuário cadastrado:', nome});
-    }
-    catch(error){
-        res.status(500).json({error:'error ao cadastrar usuario'})
-    }
-    };
+exports.cadastrarUsuario = async (req, res) => {
+    try {
+        const { nome, email, senha } = req.body;
 
-    exports.loginUsuario = async(req,res)=>{
-        try{
-               const  {email, senha} = req.body;
-    
-               if(!email) return res.status(422).json({msg:'Email é obrigatório'})
-               if(!senha) return res.status(422).json({msg:'senha é obrigatório'})
-        
-               const usuario = await Usuario.findOne({ where: { email } });
+        if (!nome) return res.status(422).json({ msg: 'Nome é obrigatório' });
+        if (!email) return res.status(422).json({ msg: 'Email é obrigatório' });
+        if (!senha) return res.status(422).json({ msg: 'Senha é obrigatória' });
 
-               if(!usuario){
-                return res.status(404).json({msg:'Usuário não encontrado'})
-               } 
-    
-               if(senha !== usuario.senha){
-                return res.status(422).json({msg:'Senha inválida'})
-               }
-    
-               res.status(200).json({msg:'Autenticação com sucesso'})
+        const usuarioexiste = await Usuario.findOne({ where: { email } });
+        if (usuarioexiste) return res.status(422).json({ error: 'Email já cadastrado' });
+
+        // Criando Hash da senha
+        let senhaHash;
+        try {
+            const salt = await bcrypt.genSalt(12);
+            senhaHash = await bcrypt.hash(senha, salt);
+        } catch (hashError) {
+            console.error('Erro ao gerar hash:', hashError);
+            return res.status(500).json({ error: 'Erro ao gerar hash da senha' });
         }
-        catch(error){
-           
-                console.error(error); // <- adicione isso
-                res.status(500).json({ error: 'Erro ao encontrar usuário' });
-            }
-            
-            res.status(500).json({error:'error ao encontrar usuario'})
-        
-        };
+
+        const usuario = await Usuario.create({ nome, email, senha: senhaHash });
+
+        res.status(201).json({ msg: 'Usuário cadastrado com sucesso', nome });
+    } catch (error) {
+        res.status(500).json({ error: 'Erro ao cadastrar usuário', detalhes: error.message });
+    }
+};
+
+
+  exports.loginUsuario = async (req, res) => {
+    try {
+        const { email, senha } = req.body;
+
+        if (!email) return res.status(422).json({ msg: 'Email é obrigatório' });
+        if (!senha) return res.status(422).json({ msg: 'Senha é obrigatória' });
+
+        const usuario = await Usuario.findOne({ where: { email } });
+
+        if (!usuario) {
+            return res.status(404).json({ msg: 'Usuário não encontrado' });
+        }
+
+        const checkSenha = await bcrypt.compare(senha, usuario.senha);
+        if (!checkSenha) {
+            return res.status(401).json({ msg: 'Senha inválida' });
+        }
+
+        const secret = process.env.JWTSECRET;
+        const token = jwt.sign(
+            {
+                id: usuario.usuario_id,
+                nome: usuario.nome,
+                email: usuario.email
+            },
+            secret,
+            { expiresIn: '1d' }
+        );
+
+        return res.status(200).json({ msg: 'Autenticação com sucesso', token });
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: 'Erro ao autenticar usuário' });
+    }
+};
 
 
         exports.atualizarUsuario = async (req, res) => {
@@ -63,9 +83,17 @@ exports.cadastrarUsuario = async(req,res)=>{
               }
               if (nome) usuario.nome = nome;
               if (email) usuario.email = email;
-              if (senha) usuario.senha = senha; 
-          
-              await usuario.save();
+               if (senha) {
+                 try {
+                  const salt = await bcrypt.genSalt(12);
+                  usuario.senhaHash = await bcrypt.hash(senha, salt);
+                 } catch (hashError) {
+                  console.error('Erro ao gerar hash da senha:', hashError);
+                  return res.status(500).json({ error: 'Erro ao gerar hash da senha' });
+                }
+             }
+
+           await usuario.save();
           
               res.status(200).json({ msg: 'Usuário atualizado com sucesso', usuario });
             } catch (error) {

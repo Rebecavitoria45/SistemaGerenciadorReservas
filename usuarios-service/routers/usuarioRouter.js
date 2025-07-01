@@ -1,13 +1,14 @@
 const express = require('express')
 const router = express.Router();
 const usuarioController = require('../controllers/UsuarioController')
+const verificaToken = require('../middleware/verificartoken')
 
-router.post('/cadastrar', usuarioController.cadastrarUsuario)
+router.post('/cadastrar' ,usuarioController.cadastrarUsuario)
 router.post('/login', usuarioController.loginUsuario)
-router.put('/atualizar/:usuario_id',usuarioController.atualizarUsuario)
-router.delete('/deletar/:usuario_id',usuarioController.deletarUsuario)
-router.get('/listar',usuarioController.listarUsuarios)
-router.get('/buscar/:usuario_id',usuarioController.buscarUsuario)
+router.put('/atualizar/:usuario_id',verificaToken,usuarioController.atualizarUsuario)
+router.delete('/deletar/:usuario_id',verificaToken,usuarioController.deletarUsuario)
+router.get('/listar',verificaToken,usuarioController.listarUsuarios)
+router.get('/buscar/:usuario_id',verificaToken, usuarioController.buscarUsuario)
 
 
 module.exports = router;

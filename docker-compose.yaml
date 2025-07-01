@@ -91,6 +91,7 @@ services:
       DB_USER: root
       DB_PASSWORD: example
       DB_NAME: usuarios_db
+    
 
     depends_on:
       - usuarios-db

@@ -3,17 +3,21 @@ const Reserva = require('../models/reservaModel');
 const { enviarEventoAtualizacaoQuarto } = require('../utils/rabbitmq');
 const { differenceInDays, parseISO } = require('date-fns');
 
+
 exports.criarReserva = async (req, res) => {
     try {
         const { usuario_id, numero_quarto, check_in, check_out, numero_pessoas } = req.body;
-
+        const token = req.headers.authorization;
         console.log(`[Reservas Service] Recebida requisição para criar reserva para usuario_id: ${usuario_id}, numero_quarto: ${numero_quarto}`);
 
         let usuarioResponse;
         try {
             const usuarioServiceURL = `http://usuarios-service:3000/buscar/${usuario_id}`;
             console.log(`[Reservas Service] Chamando serviço de usuários em: ${usuarioServiceURL}`);
-            usuarioResponse = await axios.get(usuarioServiceURL);
+            usuarioResponse = await axios.get(usuarioServiceURL,{
+                headers: {
+                    Authorization: token
+                }});
             console.log(`[Reservas Service] Resposta do serviço de usuários (status: ${usuarioResponse.status}, data:`, usuarioResponse.data);
 
             if (!usuarioResponse.data || !usuarioResponse.data.usuario) {
@@ -43,7 +47,10 @@ exports.criarReserva = async (req, res) => {
         try {
             const quartoServiceURL = `http://quartos-service:3000/buscar/${numero_quarto}`;
             console.log(`[Reservas Service] Chamando serviço de quartos em: ${quartoServiceURL}`);
-            quartoResponse = await axios.get(quartoServiceURL);
+            quartoResponse = await axios.get(quartoServiceURL,{
+                headers: {
+                    Authorization: token
+                }});
             console.log(`[Reservas Service] Resposta do serviço de quartos (status: ${quartoResponse.status}, data:`, quartoResponse.data);
 
             if (!quartoResponse.data || !quartoResponse.data.quarto) {
@@ -174,6 +181,7 @@ exports.listarReservasPorUsuario = async (req, res) => {
 exports.atualizarReserva = async (req, res) => {
     try {
         const { id_reserva } = req.params;
+        const token = req.headers.authorization;
         const { numero_quarto, check_in, check_out, numero_pessoas } = req.body;
 
         console.log(`[Reservas Service] Tentando atualizar reserva ${id_reserva}.`);
@@ -188,7 +196,10 @@ exports.atualizarReserva = async (req, res) => {
         if (numero_quarto && numero_quarto !== reserva.numero_quarto) {
             console.log(`[Reservas Service] Número do quarto mudando de ${reserva.numero_quarto} para ${numero_quarto}.`);
             try {
-                const quartoResponse = await axios.get(`http://quartos-service:3000/buscar/${numero_quarto}`);
+                const quartoResponse = await axios.get(`http://quartos-service:3000/buscar/${numero_quarto}`,{
+                headers: {
+                    Authorization: token
+                }});
                 quarto = quartoResponse.data.quarto;
 
                 if (!quarto.disponivel) {
@@ -206,7 +217,10 @@ exports.atualizarReserva = async (req, res) => {
         } else {
             console.log(`[Reservas Service] Mantendo quarto atual ${reserva.numero_quarto}. Buscando informações.`);
             try {
-                const quartoResponse = await axios.get(`http://quartos-service:3000/buscar/${reserva.numero_quarto}`);
+                const quartoResponse = await axios.get(`http://quartos-service:3000/buscar/${reserva.numero_quarto}`,{
+                headers: {
+                    Authorization: token
+                }});
                 quarto = quartoResponse.data.quarto;
                  if (!quarto) { 
                     console.log(`[Reservas Service] Quarto ${reserva.numero_quarto} não encontrado após buscar informações.`);
