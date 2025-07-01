@@ -110,15 +110,6 @@ npm run serve
 
 ---
 
-## 🔧 Funcionalidades Implementadas
-
-- Verificação de disponibilidade do quarto
-- Validação da capacidade (quantidade de pessoas)
-- Cálculo automático do preço da reserva (preço do quarto × quantidade de dias)
-- Alteração automática do status de disponibilidade do quarto
-
----
-
 ## 👤 Autoras
 
 <table>
