@@ -26,6 +26,11 @@ const sequelize = require('../config/database');
       type: DataTypes.STRING,
       allowNull: false,
     },
+  role: {
+  type: DataTypes.STRING,
+  allowNull: false,
+  defaultValue: 'user' 
+}
   }, {
     tableName: 'usuarios',
     timestamps: false,

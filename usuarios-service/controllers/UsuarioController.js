@@ -5,7 +5,7 @@ require('dotenv').config();
 
 exports.cadastrarUsuario = async (req, res) => {
     try {
-        const { nome, email, senha } = req.body;
+        const { nome, email, senha, role } = req.body;
 
         if (!nome) return res.status(422).json({ msg: 'Nome é obrigatório' });
         if (!email) return res.status(422).json({ msg: 'Email é obrigatório' });
@@ -24,7 +24,7 @@ exports.cadastrarUsuario = async (req, res) => {
             return res.status(500).json({ error: 'Erro ao gerar hash da senha' });
         }
 
-        const usuario = await Usuario.create({ nome, email, senha: senhaHash });
+        const usuario = await Usuario.create({ nome, email, senha: senhaHash, role});
 
         res.status(201).json({ msg: 'Usuário cadastrado com sucesso', nome });
     } catch (error) {
@@ -35,7 +35,7 @@ exports.cadastrarUsuario = async (req, res) => {
 
   exports.loginUsuario = async (req, res) => {
     try {
-        const { email, senha } = req.body;
+        const { email, senha, role } = req.body;
 
         if (!email) return res.status(422).json({ msg: 'Email é obrigatório' });
         if (!senha) return res.status(422).json({ msg: 'Senha é obrigatória' });
@@ -56,7 +56,8 @@ exports.cadastrarUsuario = async (req, res) => {
             {
                 id: usuario.usuario_id,
                 nome: usuario.nome,
-                email: usuario.email
+                email: usuario.email,
+                role: usuario.role 
             },
             secret,
             { expiresIn: '1d' }
