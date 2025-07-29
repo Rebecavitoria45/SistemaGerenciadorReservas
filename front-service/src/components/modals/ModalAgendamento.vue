@@ -7,18 +7,18 @@
           <button class="modal-close-button" @click="closeModal">&times;</button>
         </div>
         <div class="modal-body">
-          <form @submit.prevent="handleSubmit()" class="modal-form">
+          <form @submit.prevent="handleSubmit" class="modal-form">
 
             <div class="form-group">
               <label for="usuario_id">Usuário</label>
               <select
                 id="usuario_id"
-                v-model="currentReserva.usuario_id"
+                v-model.number="currentReserva.usuario_id"
                 class="form-select"
                 required
               >
                 <option :value="null" disabled>Selecione um usuário</option>
-                <option v-if="loadingUsers" :value="null" disabled>Carregando usuários...</option>
+                <option v-if="loadingUsers" disabled>Carregando usuários...</option>
                 <option v-for="user in users" :key="user.usuario_id" :value="user.usuario_id">
                   {{ user.nome }} (ID: {{ user.usuario_id }})
                 </option>
@@ -38,12 +38,12 @@
               <label for="numero_quarto">Número do Quarto</label>
               <select
                 id="numero_quarto"
-                v-model="currentReserva.numero_quarto"
+                v-model.number="currentReserva.numero_quarto"
                 class="form-select"
                 required
               >
                 <option :value="null" disabled>Selecione um quarto</option>
-                <option v-if="loadingQuartos" :value="null" disabled>Carregando quartos...</option>
+                <option v-if="loadingQuartos" disabled>Carregando quartos...</option>
                 <option
                   v-for="quarto in availableQuartos"
                   :key="quarto.numero_quarto"
@@ -63,7 +63,11 @@
                 class="form-control disabled-input" />
             </div>
 
-            <div class="form-group" v-for="(label, field) in filteredFieldLabels" :key="field">
+            <div 
+              class="form-group"
+              v-for="(label, field) in filteredFieldLabels" 
+              :key="field"
+            >
               <label :for="field">{{ label }}</label>
               <input
                 v-if="field.includes('data') || field.includes('check')"
@@ -98,6 +102,7 @@
                 Deletar
               </button>
             </div>
+
           </form>
         </div>
       </div>
@@ -106,11 +111,10 @@
 </template>
 
 <script>
-
 import { userApi, roomsApi } from '../../utils/axios';
 
 export default {
-  name: 'ReservaModal',
+  name: 'ModalAgendamento',
   props: {
     isVisible: Boolean,
     reservaToEdit: Object,
@@ -129,7 +133,7 @@ export default {
       isEditing: false,
       users: [],
       loadingUsers: false,
-      quartos: [], 
+      quartos: [],
       loadingQuartos: false,
       fieldLabels: {
         data_reserva: 'Data da Reserva',
@@ -147,13 +151,11 @@ export default {
       if (this.isEditing) {
         const currentQuarto = this.quartos.find(q => q.numero_quarto === this.reservaToEdit?.numero_quarto);
         const otherAvailableQuartos = this.quartos.filter(q => q.disponivel && q.numero_quarto !== this.reservaToEdit?.numero_quarto);
-        
         let quartosParaMostrar = [...otherAvailableQuartos];
         if (currentQuarto && !quartosParaMostrar.some(q => q.numero_quarto === currentQuarto.numero_quarto)) {
           quartosParaMostrar.unshift(currentQuarto);
         }
         return quartosParaMostrar.sort((a, b) => a.numero_quarto - b.numero_quarto);
-
       } else {
         return this.quartos.filter(quarto => quarto.disponivel);
       }
@@ -171,7 +173,7 @@ export default {
         return selectedQuarto ? selectedQuarto.tipo : 'Tipo não encontrado';
       }
       return '';
-    }
+    },
   },
   watch: {
     isVisible(newVal) {
@@ -183,33 +185,26 @@ export default {
   methods: {
     async initializeModalData() {
       this.resetForm();
-      
       this.currentReserva.data_reserva = this.formatDateForInput(new Date());
-
-      await Promise.all([this.fetchUsers(), this.fetchQuartos()]); 
-
+      await Promise.all([this.fetchUsers(), this.fetchQuartos()]);
       if (this.reservaToEdit) {
         this.isEditing = true;
-        
         this.currentReserva = {
           ...this.reservaToEdit,
-          usuario_id: this.reservaToEdit.usuario_id ? Number(this.reservaToEdit.usuario_id) : null,
-          numero_quarto: this.reservaToEdit.numero_quarto ? Number(this.reservaToEdit.numero_quarto) : null,
+          usuario_id: Number(this.reservaToEdit.usuario_id),
+          numero_quarto: Number(this.reservaToEdit.numero_quarto),
           data_reserva: this.formatDateForInput(this.reservaToEdit.data_reserva),
           check_in: this.formatDateForInput(this.reservaToEdit.check_in),
           check_out: this.formatDateForInput(this.reservaToEdit.check_out),
-          
           numero_pessoas: Number(this.reservaToEdit.numero_pessoas),
         };
       }
-      
     },
     async fetchUsers() {
       this.loadingUsers = true;
       try {
         const response = await userApi.get('/listar');
         this.users = Array.isArray(response.data) ? response.data : [];
-        console.log("Usuários carregados:", this.users);
       } catch (error) {
         console.error('Erro ao buscar usuários:', error);
         this.users = [];
@@ -221,8 +216,7 @@ export default {
       this.loadingQuartos = true;
       try {
         const response = await roomsApi.get('/listar');
-        this.quartos = Array.isArray(response.data) ? response.data : []; 
-        console.log("Quartos carregados:", this.quartos);
+        this.quartos = Array.isArray(response.data) ? response.data : [];
       } catch (error) {
         console.error('Erro ao buscar quartos:', error);
         this.quartos = [];
@@ -254,32 +248,32 @@ export default {
       this.isEditing = false;
     },
     handleSubmit() {
-  const r = { ...this.currentReserva }; 
-  r.usuario_id = Number(r.usuario_id);
-  r.numero_quarto = Number(r.numero_quarto);
-  r.numero_pessoas = Number(r.numero_pessoas);
+      const r = { ...this.currentReserva };
+      r.usuario_id = Number(r.usuario_id);
+      r.numero_quarto = Number(r.numero_quarto);
+      r.numero_pessoas = Number(r.numero_pessoas);
 
-  if (!r.usuario_id || !r.numero_quarto || !r.data_reserva || !r.check_in || !r.check_out) {
-    return alert('Preencha todos os campos obrigatórios.');
-  }
+      if (!r.usuario_id || !r.numero_quarto || !r.data_reserva || !r.check_in || !r.check_out) {
+        return alert('Preencha todos os campos obrigatórios.');
+      }
 
-  const checkInDate = new Date(r.check_in + 'T00:00:00'); 
-  const checkOutDate = new Date(r.check_out + 'T00:00:00');
-  const today = new Date(this.formatDateForInput(new Date()) + 'T00:00:00');
+      const checkInDate = new Date(r.check_in + 'T00:00:00');
+      const checkOutDate = new Date(r.check_out + 'T00:00:00');
+      const today = new Date(this.formatDateForInput(new Date()) + 'T00:00:00');
 
-  if (checkInDate > checkOutDate) {
-    return alert('Check-out não pode ser antes do check-in.');
-  }
-  if (!this.isEditing && checkInDate < today) {
-    return alert('Check-in não pode ser uma data passada para novas reservas.');
-  }
+      if (checkInDate > checkOutDate) {
+        return alert('Check-out não pode ser antes do check-in.');
+      }
+      if (!this.isEditing && checkInDate < today) {
+        return alert('Check-in não pode ser uma data passada para novas reservas.');
+      }
 
-  if (this.isEditing) {
-    this.$emit('updateReserva', r); 
-  } else {
-    this.$emit('createReserva', r);
-  }
-},
+      if (this.isEditing) {
+        this.$emit('updateReserva', r);
+      } else {
+        this.$emit('createReserva', r);
+      }
+    },
     handleDelete() {
       if (confirm(`Tem certeza que deseja excluir a reserva #${this.currentReserva.id_reserva}?`)) {
         this.$emit('deleteReserva', this.currentReserva.id_reserva);

@@ -44,7 +44,7 @@
     />
 
     <!-- Modal de Reserva (apenas user) -->
-    <ReservaModal
+    <ModalAgendamento
       v-if="isUser"
       :is-visible="reservaModalOpen"
       :reserva-to-edit="{
@@ -60,7 +60,7 @@
 <script>
 import QuartoCard from '../components/quartoCard.vue';
 import QuartoModal from '../components/modals/ModalQuarto.vue';
-import ModalReserva from '../components/modals/ModalReserva.vue';
+import ModalAgendamento from '../components/modals/ModalAgendamento.vue';
 import { roomsApi, reservationApi } from '../utils/axios';
 
 export default {
@@ -68,7 +68,7 @@ export default {
   components: {
     QuartoCard,
     QuartoModal,
-    ModalReserva,
+    ModalAgendamento,
   },
   data() {
     return {
@@ -82,7 +82,7 @@ export default {
       role: localStorage.getItem('role'),
       userId: localStorage.getItem('user_id') || null,
 
-      // Novos estados para reserva
+      // Controle modal reserva
       reservaModalOpen: false,
       quartoSelecionadoParaReserva: null,
     };
@@ -99,8 +99,7 @@ export default {
     },
     quartosPaginados() {
       const start = (this.currentPage - 1) * this.itemsPerPage;
-      const end = start + this.itemsPerPage;
-      return this.quartos.slice(start, end);
+      return this.quartos.slice(start, start + this.itemsPerPage);
     },
   },
   async created() {
@@ -151,25 +150,24 @@ export default {
       this.fetchQuartos();
     },
 
-    // ✅ Novo: abre o modal de reserva
+    // Abrir modal reserva
     handleReservarQuarto(quarto) {
       if (!quarto.disponivel) {
         alert('Este quarto está ocupado.');
         return;
       }
-
       this.quartoSelecionadoParaReserva = quarto;
       this.reservaModalOpen = true;
     },
 
-    // ✅ Novo: cria a reserva
+    // Criar reserva
     async handleCreateReserva(reservaData) {
       try {
         await reservationApi.post('/cadastrar', reservaData);
         alert('Reserva realizada com sucesso!');
         this.reservaModalOpen = false;
-        this.fetchQuartos(); // atualiza status dos quartos
-        this.$router.push('/minhasreservas'); // redireciona
+        this.fetchQuartos(); // Atualiza status dos quartos
+        this.$router.push('/minhasreservas');
       } catch (err) {
         console.error('Erro ao criar reserva:', err);
         alert('Erro ao tentar criar a reserva.');
@@ -185,6 +183,7 @@ export default {
   },
 };
 </script>
+
 
 <style scoped>
 .quartos-page {
