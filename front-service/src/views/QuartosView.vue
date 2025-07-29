@@ -1,14 +1,11 @@
 <template>
   <div class="quartos-page">
-    <div class="header-quarto">
-  <h2>Gerenciamento de Quartos</h2>
-  <button @click="openCreateModal" class="button-add-quarto">
-    Adicionar Novo Quarto
-  </button>
-</div>
-
-
-
+    <div class="header-quarto" v-if="isAdmin">
+      <h2>Gerenciamento de Quartos</h2>
+      <button @click="openCreateModal" class="button-add-quarto">
+        Adicionar Novo Quarto
+      </button>
+    </div>
 
     <p v-if="loading">Carregando quartos...</p>
     <p v-if="error" class="error-message">Erro: {{ error }}</p>
@@ -18,8 +15,13 @@
         v-for="quarto in quartosPaginados"
         :key="quarto.numero_quarto"
         :quarto="quarto"
-        @open-popup="handleOpenEditModal" />
+        :is-admin="isAdmin"
+        :is-user="isUser"
+        @open-popup="handleOpenEditModal"
+        @reservar-quarto="handleReservarQuarto"
+      />
     </div>
+
     <p v-else-if="!loading && !error && (!quartos || quartos.length === 0)" class="no-rooms-message">
       Nenhum quarto encontrado.
     </p>
@@ -31,6 +33,7 @@
     </div>
 
     <QuartoModal
+      v-if="isAdmin"
       :is-visible="isModalOpen"
       :quarto-to-edit="selectedQuarto"
       @close="closeModal"
@@ -42,12 +45,9 @@
 </template>
 
 <script>
-import axios from 'axios';
 import QuartoCard from '@/components/quartoCard.vue'; 
 import QuartoModal from '@/components/modals/ModalQuarto.vue'; 
-import { userApi, roomsApi, reservationApi } from '../utils/axios';
-
-
+import { roomsApi, reservationApi } from '../utils/axios';
 
 export default {
   name: 'QuartosPage',
@@ -64,9 +64,17 @@ export default {
       selectedQuarto: null,
       currentPage: 1,
       itemsPerPage: 6,
+      role: localStorage.getItem('role'),
+      userId: localStorage.getItem('user_id') || null,
     };
   },
   computed: {
+    isAdmin() {
+      return this.role === 'admin';
+    },
+    isUser() {
+      return this.role === 'user';
+    },
     totalPages() {
       return Math.ceil(this.quartos.length / this.itemsPerPage);
     },
@@ -85,76 +93,59 @@ export default {
         this.loading = true;
         this.error = null;
 
-        const timestamp = new Date().getTime(); 
-        const response = await roomsApi.get(`/listar?_=${timestamp}`); 
-
-        if (Array.isArray(response.data)) {
-          this.quartos = response.data;
-          console.log("Quartos carregados:", this.quartos);
-        } else {
-          this.error = "Erro no formato dos dados da API de quartos. Esperado um array.";
-          console.error("Formato inesperado da API:", response.data);
-        }
-
+        const response = await roomsApi.get(`/listar?_=${Date.now()}`);
+        this.quartos = Array.isArray(response.data) ? response.data : [];
       } catch (err) {
-        if (err.response) {
-          this.error = `Erro do servidor: ${err.response.status} - ${err.response.data?.message || err.response.data?.error || 'Erro desconhecido do servidor.'}`;
-        } else if (err.request) {
-          this.error = 'Erro de rede: O servidor de quartos não está respondendo. Verifique se o backend está rodando na porta 3002.';
-        } else {
-          this.error = 'Ocorreu um erro inesperado ao configurar a requisição.';
-        }
-        console.error("Erro ao buscar quartos:", err);
+        this.error = 'Erro ao buscar quartos.';
+        console.error(err);
       } finally {
         this.loading = false;
       }
     },
     openCreateModal() {
-      this.selectedQuarto = null; 
+      this.selectedQuarto = null;
       this.isModalOpen = true;
     },
     handleOpenEditModal(numero_quarto) {
       this.selectedQuarto = this.quartos.find(q => q.numero_quarto === numero_quarto);
       if (this.selectedQuarto) {
         this.isModalOpen = true;
-      } else {
-        alert('Quarto não encontrado para edição.');
-        console.error('Número do quarto não encontrado na lista:', numero_quarto);
       }
     },
     closeModal() {
       this.isModalOpen = false;
       this.selectedQuarto = null;
-      this.fetchQuartos(); 
+      this.fetchQuartos();
     },
     async handleCreateQuarto(newQuartoData) {
-      try {
-        await roomsApi.post('/cadastrar', newQuartoData);
-        alert('Quarto criado com sucesso!');
-        this.fetchQuartos(); 
-      } catch (err) {
-        console.error('Erro ao criar quarto:', err.response ? err.response.data : err.message);
-        alert('Erro ao criar quarto. Verifique o console.');
-      }
+      await roomsApi.post('/cadastrar', newQuartoData);
+      alert('Quarto criado com sucesso!');
+      this.fetchQuartos();
     },
     async handleUpdateQuarto(updatedQuartoData) {
-      try {
-        await roomsApi.put(`/atualizar/${updatedQuartoData.numero_quarto}`, updatedQuartoData); 
-        alert('Quarto atualizado com sucesso!');
-        this.fetchQuartos(); 
-      } catch (err) {
-        console.error('Erro ao atualizar quarto:', err.response ? err.response.data : err.message);
-        alert('Erro ao atualizar quarto. Verifique o console.');
-      }
+      await roomsApi.put(`/atualizar/${updatedQuartoData.numero_quarto}`, updatedQuartoData);
+      alert('Quarto atualizado com sucesso!');
+      this.fetchQuartos();
     },
     async handleDeleteQuarto(quartoNumber) {
+      await roomsApi.delete(`/deletar/${quartoNumber}`);
+      alert('Quarto deletado com sucesso!');
+      this.fetchQuartos();
+    },
+    async handleReservarQuarto(quarto) {
       try {
-        await roomsApi.delete(`/deletar/${quartoNumber}`); 
-        alert('Quarto deletado com sucesso!');
-        this.fetchQuartos(); 
+        const dataReserva = {
+          usuario_id: this.userId,
+          numero_quarto: quarto.numero_quarto,
+          data_checkin: new Date().toISOString().split('T')[0], // exemplo: hoje
+          data_checkout: new Date(Date.now() + 3 * 86400000).toISOString().split('T')[0], // +3 dias
+        };
+
+        await reservationApi.post('/cadastrar', dataReserva);
+        alert('Reserva realizada com sucesso!');
       } catch (err) {
-        console.error('Erro ao deletar quarto:', err.response ? err.response.data : err.message);
-        alert('Erro ao deletar quarto. Verifique o console.');
+        console.error('Erro ao reservar quarto:', err);
+        alert('Erro ao tentar reservar o quarto.');
       }
     },
     nextPage() {

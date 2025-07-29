@@ -1,6 +1,16 @@
 <template>
   <div id="app">
-    <Sidebar :expanded="sidebarExpanded" v-if="!isAuthPage" />
+    <!-- Sidebar Admin -->
+    <Sidebar
+      v-if="!isAuthPage && role === 'admin'"
+      :expanded="sidebarExpanded"
+    />
+
+    <!-- Sidebar Usuário -->
+    <SidebarUser
+      v-if="!isAuthPage && role === 'user'"
+      :expanded="sidebarExpanded"
+    />
 
     <div
       class="main-content"
@@ -10,39 +20,54 @@
         collapsed: !sidebarExpanded,
       }"
     >
+      <!-- Navbar aparece para ambos -->
       <NavbarSuperior
         v-if="!isAuthPage"
         :expanded="sidebarExpanded"
         @toggle-sidebar="toggleSidebar"
       />
+
       <router-view />
     </div>
   </div>
 </template>
 
 <script>
-import Sidebar from './components/Sidebar.vue'
-import NavbarSuperior from './components/NavbarSuperior.vue'
+import Sidebar from './components/Sidebar.vue';
+import SidebarUser from './components/SidebarUser.vue';
+import NavbarSuperior from './components/NavbarSuperior.vue';
 
 export default {
   name: 'App',
-  components: { Sidebar, NavbarSuperior },
+  components: {
+    Sidebar,
+    SidebarUser,
+    NavbarSuperior,
+  },
   data() {
     return {
       sidebarExpanded: false,
-    }
+      role: localStorage.getItem('role'), // mantém atualizado
+    };
   },
   computed: {
     isAuthPage() {
-      return ['Login', 'ForgotPassword', 'Register'].includes(this.$route.name)
+      // Rotas que devem ter layout limpo (sem menu, navbar)
+      return ['Login', 'ForgotPassword', 'Register', 'NotAuthorized'].includes(this.$route.name);
+    },
+  },
+  watch: {
+    // Atualiza role sempre que mudar de rota
+    '$route'() {
+      this.role = localStorage.getItem('role');
     },
   },
   methods: {
     toggleSidebar() {
-      this.sidebarExpanded = !this.sidebarExpanded
+      this.sidebarExpanded = !this.sidebarExpanded;
     },
   },
-}
+};
 </script>
 
 <style>

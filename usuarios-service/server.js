@@ -22,8 +22,29 @@ app.use(cors({
 
 app.use(express.json());
 app.use(usuarioRouter)
+async function criarUsuarioPadrao() {
+  const usuarioExistente = await Usuario.findOne({
+    where: { email: 'admin@admin.com' }
+  });
 
-// Função para tentar conectar repetidamente
+  if (!usuarioExistente) {
+    const bcrypt = require('bcryptjs');
+    const senhaHash = await bcrypt.hash('admin123', 10);
+
+    await Usuario.create({
+      nome: 'Administrador',
+      email: 'admin@admin.com',
+      senha: senhaHash,
+      role: 'admin'
+    });
+
+    console.log('Usuário admin padrão criado com sucesso!');
+  } else {
+    console.log('Usuário admin já existe.');
+  }
+}
+
+
 async function connectWithRetry() {
   let connected = false;
   while (!connected) {
@@ -32,6 +53,10 @@ async function connectWithRetry() {
       console.log('Conectado ao banco com sucesso!');
       connected = true;
       await sequelize.sync();
+
+      // Criação do usuário padrão
+      await criarUsuarioPadrao();
+
       app.listen(3000, () => {
         console.log('Usuarios service rodando na porta 3000');
       });

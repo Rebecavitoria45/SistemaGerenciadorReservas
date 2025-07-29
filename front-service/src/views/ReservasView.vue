@@ -41,8 +41,7 @@
 import ReservaCard from '@/components/ReservaCard.vue';
 import ReservaModal from '@/components/modals/ModalReserva.vue';
 import axios from 'axios'; 
-import { userApi, reservationApi } from '../utils/axios'; // Certifique-se de que os caminhos estão corretos
-
+import { userApi, reservationApi } from '../utils/axios'; 
 export default {
   name: 'ReservasPage',
   components: {
@@ -52,22 +51,19 @@ export default {
   data() {
     return {
       reservas: [],
-      usuarioNomes: {}, // { usuario_id: nome_do_usuario }
+      usuarioNomes: {}, 
       loading: true,
-      error: null, // Erros gerais da API de reservas
-      userApiError: null, // Erros específicos da API de usuários
+      error: null, 
+      userApiError: null, 
       isModalOpen: false,
       selectedReserva: null,
     };
   },
   computed: {
-    // Esta computed property é essencial para que o ReservaCard receba o nome do usuário
     reservasComNomes() {
-      // Retorna as reservas, cada uma com sua propriedade 'nome_usuario' preenchida
       return this.reservas.map((reserva) => {
         const usuarioId = reserva.usuario_id || reserva.id_usuario; 
         
-        // Prioriza o nome já carregado, senão exibe "Carregando..." ou "Não disponível" em caso de erro
         const nome = this.usuarioNomes[usuarioId] 
                      || (this.userApiError ? 'Não disponível' : 'Carregando...');
         
@@ -79,7 +75,6 @@ export default {
     },
   },
   async created() {
-    // Chama a função para buscar reservas e, consequentemente, os nomes dos usuários
     await this.fetchReservas(); 
   },
   methods: {
@@ -87,24 +82,20 @@ export default {
       try {
         this.loading = true;
         this.error = null;
-        this.userApiError = null; // Reseta o erro da API de usuários a cada nova busca
+        this.userApiError = null; 
         
-        const timestamp = new Date().getTime(); // Para evitar cache do navegador, se necessário
+        const timestamp = new Date().getTime(); 
         const response = await reservationApi.get(`/listar?_=${timestamp}`);
         
-        // Garante que 'reservas' é um array, mesmo se a API retornar null ou undefined
         this.reservas = Array.isArray(response.data) ? response.data : [];
         console.log("[DEBUG ReservasPage] Reservas carregadas:", this.reservas.length);
 
-        // Extrai os IDs de usuário únicos das reservas para evitar chamadas duplicadas
         const uniqueUsuarioIds = [...new Set(
           this.reservas
-            .map(r => r.usuario_id || r.id_usuario) // Suporta 'usuario_id' ou 'id_usuario'
-            .filter(id => id != null) // Filtra IDs nulos ou indefinidos
+            .map(r => r.usuario_id || r.id_usuario) 
+            .filter(id => id != null) 
         )];
 
-        // Usa Promise.all para buscar todos os nomes de usuário em paralelo
-        // Isso melhora a performance, pois não espera uma requisição terminar para iniciar a próxima
         if (uniqueUsuarioIds.length > 0) {
             await Promise.all(uniqueUsuarioIds.map(id => this.fetchNomeUsuario(id)));
         } else {
@@ -131,7 +122,6 @@ export default {
     },
     
     async fetchNomeUsuario(usuarioId) {
-      // Verifica se a userApi está configurada antes de tentar usar
       if (!userApi || !userApi.defaults || !userApi.defaults.baseURL) {
         console.error("[DEBUG ReservasPage] userApi ou sua baseURL não estão definidas. Verifique a importação e configuração de '../utils/axios'.");
         this.usuarioNomes = { ...this.usuarioNomes, [usuarioId]: 'Erro: API não configurada' };
@@ -146,25 +136,22 @@ export default {
         this.usuarioNomes = { ...this.usuarioNomes, [usuarioId]: 'ID Inválido' };
         return;
       }
-      // Evita buscar o nome se já estiver em cache ou se já houve um erro prévio para este ID
       if (this.usuarioNomes[usuarioId] && this.usuarioNomes[usuarioId] !== 'Carregando...') {
         console.log(`%c[DEBUG ReservasPage] Nome para ID ${usuarioId} já está em cache: ${this.usuarioNomes[usuarioId]}. Pulando busca.`, 'color: lightblue');
         return;
       }
 
       try {
-        // AQUI ESTÁ CORRETO: userApi.get(`/buscar/${usuarioId}`)
         const response = await userApi.get(`/buscar/${usuarioId}`); 
         
         console.log(`%c[DEBUG ReservasPage] Resposta RECEBIDA da API de usuários para ID ${usuarioId}:`, 'color: green', response.status, response.data);
         
-        const nome = response?.data?.usuario?.nome; // Ajuste o path se a estrutura da sua resposta for diferente
+        const nome = response?.data?.usuario?.nome;
         
         if (nome) {
-          // Usa um novo objeto para garantir a reatividade no Vue 2 (spread syntax)
           this.usuarioNomes = { ...this.usuarioNomes, [usuarioId]: nome };
           console.log(`%c[DEBUG ReservasPage] Nome para ID ${usuarioId} ATUALIZADO: ${nome}`, 'color: limegreen');
-          this.userApiError = null; // Limpa o erro se o nome foi encontrado
+          this.userApiError = null; 
         } else {
           console.warn(`%c[DEBUG ReservasPage] Nome de usuário não encontrado na estrutura esperada da resposta para ID ${usuarioId}. Resposta.data:`, 'color: orange', response.data);
           this.usuarioNomes = { ...this.usuarioNomes, [usuarioId]: 'Nome não encontrado' };
@@ -187,26 +174,24 @@ export default {
           console.error(`%c[DEBUG ReservasPage] ERRO DESCONHECIDO ao buscar nome do usuário ${usuarioId}:`, 'color: red', error);
         }
         this.usuarioNomes = { ...this.usuarioNomes, [usuarioId]: errorMessage };
-        this.userApiError = `Erro na API de Usuários: ${errorMessage}`; // Atualiza o erro da API de usuários
+        this.userApiError = `Erro na API de Usuários: ${errorMessage}`; 
       } finally {
         console.log(`%c[DEBUG ReservasPage] === FIM DA BUSCA PARA ID: ${usuarioId} ===`, 'background: #222; color: #bada55');
       }
     },
 
-    // Métodos para o modal (criar, editar, deletar)
     openCreateModal() {
       this.selectedReserva = null;
       this.isModalOpen = true;
     },
     handleOpenEditModal(reservaId) {
-      // Usa reservasComNomes para garantir que o modal tenha o nome do usuário, se disponível
       this.selectedReserva = this.reservasComNomes.find((r) => r.id_reserva === reservaId);
       this.isModalOpen = !!this.selectedReserva;
     },
     closeModal() {
       this.isModalOpen = false;
       this.selectedReserva = null;
-      this.fetchReservas(); // Recarrega as reservas após fechar o modal para refletir as mudanças
+      this.fetchReservas(); 
     },
     async handleCreateReserva(newReservaData) {
       try {
@@ -269,11 +254,6 @@ export default {
 
 
 <style scoped>
-.reservas-page-container {
-  padding: 20px;
-  max-width: 1900px;
-  margin: 0 auto;
-}
 
 .header-reserva {
   display: flex;

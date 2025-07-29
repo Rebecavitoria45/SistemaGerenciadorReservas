@@ -32,7 +32,7 @@
           <i class="bi bi-person-fill"></i>
         </div>
         <div class="user-details">
-          <span class="user-name">Clodoaldo</span>
+          <span class="user-name">Administrador </span>
           <span class="user-role">Admin</span>
         </div>
       </div>
@@ -74,26 +74,27 @@ export default {
       }, 200);
     };
 
-    const handleLogout = async () => {
+    const handleLogout = () => {
       try {
-
         console.log('Logout realizado no frontend.');
 
-        localStorage.removeItem('userToken');
+        localStorage.removeItem('token');
+        localStorage.removeItem('role');
+        localStorage.removeItem('usuario_id');
 
         router.push('/login');
-
         closeSidebar();
-
       } catch (error) {
         console.error('Erro ao fazer logout:', error);
-        localStorage.removeItem('userToken');
+        localStorage.removeItem('token');
+        localStorage.removeItem('role');
+        localStorage.removeItem('usuario_id');
         router.push('/login');
       }
     };
 
     return { isOpen, openSidebar, closeSidebar, handleNavigationClick, menuItems, handleLogout };
-  }
+  },
 };
 </script>
 

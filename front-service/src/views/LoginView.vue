@@ -5,11 +5,11 @@
       <form @submit.prevent="handleLogin">
         <div class="form-group">
           <label for="email">Email:</label>
-          <input type="email" id="email" v-model="email" class="form-control" required>
+          <input type="email" id="email" v-model="email" class="form-control" required />
         </div>
         <div class="form-group">
           <label for="password">Senha:</label>
-          <input type="password" id="password" v-model="senha" class="form-control" required>
+          <input type="password" id="password" v-model="senha" class="form-control" required />
         </div>
         <button type="submit" class="btn btn-primary" :disabled="loading">
           {{ loading ? 'Entrando...' : 'Entrar' }}
@@ -25,8 +25,8 @@
 </template>
 
 <script>
-import { userApi, roomsApi, reservationApi } from '../utils/axios'; 
-
+import { userApi } from '../utils/axios';
+import { jwtDecode } from 'jwt-decode';
 
 export default {
   name: 'LoginView',
@@ -42,6 +42,7 @@ export default {
     async handleLogin() {
       this.loading = true;
       this.error = null;
+
       try {
         const response = await userApi.post('/login', {
           email: this.email,
@@ -49,8 +50,26 @@ export default {
         });
 
         if (response.status === 200) {
+          const token = response.data.token;
+          localStorage.setItem('token', token);
+
+          const decoded = jwtDecode(token);
+          console.log('[Token decodificado]', decoded); // 👈 ajuda a verificar a estrutura
+
+          localStorage.setItem('role', decoded.role);
+          localStorage.setItem('usuario_id', decoded.id); // ✅ Salva o ID do usuário
+
           alert(response.data.msg);
-          this.$router.push('/');
+
+          // Redireciona com base na role
+          if (decoded.role === 'admin') {
+  this.$router.push('/reservas');  // << aqui o caminho correto
+} else if (decoded.role === 'user') {
+  this.$router.push('/homeuser');
+} else {
+  this.$router.push('/login');  // ou qualquer rota padrão
+}
+
         } else {
           this.error = response.data.msg || 'Erro desconhecido ao tentar login.';
         }
@@ -74,7 +93,6 @@ export default {
 </script>
 
 <style scoped>
-
 html, body {
   margin: 0;
   padding: 0;
@@ -100,7 +118,6 @@ html, body {
   box-sizing: border-box; 
   padding: 20px;
 }
-
 
 .auth-card {
   background-color: #ffffff; 

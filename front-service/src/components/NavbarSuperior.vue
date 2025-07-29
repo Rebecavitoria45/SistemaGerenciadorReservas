@@ -1,11 +1,10 @@
 <template>
-  <div class="dashboard-header">
+  <div v-if="isAdminOrUser" class="dashboard-header">
     <div class="left-section">
       <h2 class="dashboard-greeting">{{ greetingMessage }}, {{ userName }}</h2>
       <span class="dashboard-date">{{ formattedDate }}</span>
     </div>
-    <div class="middle-section">
-      </div>
+    <div class="middle-section"></div>
     <div class="right-section">
       <div class="time">
         <i class="bi bi-clock"></i>
@@ -54,25 +53,21 @@
 
 <script>
 import { ref, onMounted, onUnmounted, computed } from 'vue';
-import InfoCard from './InfoCard.vue'; 
+import InfoCard from './InfoCard.vue';
 
 export default {
-  name: 'NavbarSuperior', 
-  components: {
-    InfoCard,
-  },
+  name: 'NavbarSuperior',
+  components: { InfoCard },
   props: {
-    expanded: {
-      type: Boolean,
-      required: true,
-    },
+    expanded: { type: Boolean, required: true },
   },
   setup() {
-    const currentTime = ref('');
-    const userName = ref(' Clodoaldo');
-    const userRole = ref('Admin'); 
-    let intervalId;
+    const userRole = ref(localStorage.getItem('role') || 'guest');
+    const userName = ref(localStorage.getItem('userName') || 'Usuário');
 
+    const isAdminOrUser = computed(() => userRole.value === 'admin' || userRole.value === 'user');
+
+    const currentTime = ref('');
     const showNotifications = ref(false);
     const showMessages = ref(false);
     const notifications = ref([]);
@@ -87,21 +82,15 @@ export default {
     };
 
     const getGreetingMessage = () => {
-      const now = new Date();
-      const hour = now.getHours();
-      if (hour >= 5 && hour < 12) {
-        return 'Bom dia';
-      } else if (hour >= 12 && hour < 18) {
-        return 'Boa tarde';
-      } else {
-        return 'Boa noite';
-      }
+      const hour = new Date().getHours();
+      if (hour >= 5 && hour < 12) return 'Bom dia';
+      else if (hour >= 12 && hour < 18) return 'Boa tarde';
+      else return 'Boa noite';
     };
 
     const getFormattedDate = () => {
       const now = new Date();
-      const options = { year: 'numeric', month: 'long', day: 'numeric' };
-      return now.toLocaleDateString('pt-BR', options);
+      return now.toLocaleDateString('pt-BR', { year: 'numeric', month: 'long', day: 'numeric' });
     };
 
     const toggleNotifications = () => {
@@ -117,21 +106,31 @@ export default {
     const handleClickOutside = (event) => {
       const notificationCard = document.querySelector('.info-card:first-of-type');
       const messageCard = document.querySelector('.info-card:last-of-type');
-      const bellIcon = document.querySelector('.bi-bell')?.parentNode; 
-      const envelopeIcon = document.querySelector('.bi-envelope')?.parentNode; 
+      const bellIcon = document.querySelector('.bi-bell')?.parentNode;
+      const envelopeIcon = document.querySelector('.bi-envelope')?.parentNode;
 
-      if (showNotifications.value && notificationCard && !notificationCard.contains(event.target) && event.target !== bellIcon) {
+      if (
+        showNotifications.value &&
+        notificationCard &&
+        !notificationCard.contains(event.target) &&
+        event.target !== bellIcon
+      ) {
         showNotifications.value = false;
       }
 
-      if (showMessages.value && messageCard && !messageCard.contains(event.target) && event.target !== envelopeIcon) {
+      if (
+        showMessages.value &&
+        messageCard &&
+        !messageCard.contains(event.target) &&
+        event.target !== envelopeIcon
+      ) {
         showMessages.value = false;
       }
     };
 
     onMounted(() => {
       updateTime();
-      intervalId = setInterval(updateTime, 1000);
+      setInterval(updateTime, 1000);
       document.addEventListener('click', handleClickOutside);
 
       setTimeout(() => {
@@ -150,7 +149,6 @@ export default {
     });
 
     onUnmounted(() => {
-      clearInterval(intervalId);
       document.removeEventListener('click', handleClickOutside);
     });
 
@@ -159,17 +157,19 @@ export default {
       userName,
       userRole,
       greetingMessage: computed(getGreetingMessage),
-      formattedDate: computed(getFormattedDate),    
+      formattedDate: computed(getFormattedDate),
       showNotifications,
       showMessages,
       toggleNotifications,
       toggleMessages,
       notifications,
-      messages
+      messages,
+      isAdminOrUser,
     };
   },
 };
 </script>
+
 
 <style scoped>
 .dashboard-header {

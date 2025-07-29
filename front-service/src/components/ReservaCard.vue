@@ -5,7 +5,7 @@
       <span class="status">Confirmada</span>
     </div>
     <div class="card-body">
-      <p><strong>Usuário:</strong> {{ nomeUsuario || 'Carregando...' }}</p>
+      <p v-if="mostrarNomeUsuario"><strong>Usuário:</strong> {{ nomeUsuario || 'Carregando...' }}</p>
       <p><strong>Quarto:</strong> {{ reserva.numero_quarto }}</p>
       <p><strong>Data da Reserva:</strong> {{ formatarData(reserva.data_reserva) }}</p>
       <p><strong>Check-in:</strong> {{ formatarData(reserva.check_in) }}</p>
@@ -13,7 +13,7 @@
       <p><strong>Pessoas:</strong> {{ reserva.numero_pessoas }}</p>
       <p><strong>Preço:</strong> R$ {{ formatarPreco(reserva.preco_reserva) }}</p>
     </div>
-    <div class="card-footer">
+    <div class="card-footer" v-if="mostrarBotaoDetalhes">
       <button @click.stop="emitOpenPopup">Ver Detalhes</button>
     </div>
   </div>
@@ -26,24 +26,19 @@ export default {
     reserva: {
       type: Object,
       required: true,
-      validator: (value) => {
-        return (
-          value.hasOwnProperty('id_reserva') &&
-          value.hasOwnProperty('usuario_id') && 
-          value.hasOwnProperty('numero_quarto') &&
-          value.hasOwnProperty('data_reserva') &&
-          value.hasOwnProperty('check_in') &&
-          value.hasOwnProperty('check_out') &&
-          value.hasOwnProperty('numero_pessoas') &&
-          value.hasOwnProperty('preco_reserva')
-        );
-      },
     },
-    // Esta prop é o que o ReservasPage.vue passará
     nomeUsuario: { 
       type: String,
-      default: 'Nome desconhecido', // Valor padrão caso não seja fornecido
+      default: '',
     },
+    mostrarNomeUsuario: {
+      type: Boolean,
+      default: false,  // Só true para admin
+    },
+    mostrarBotaoDetalhes: {
+      type: Boolean,
+      default: true,
+    }
   },
   methods: {
     emitOpenPopup() {
@@ -64,13 +59,12 @@ export default {
       }
     },
     formatarPreco(preco) {
-        if (preco === null || preco === undefined) return '0,00';
-        return parseFloat(preco).toFixed(2).replace('.', ',');
+      if (preco === null || preco === undefined) return '0,00';
+      return parseFloat(preco).toFixed(2).replace('.', ',');
     }
   },
 };
 </script>
-
 
 <style scoped>
 .reserva-card {

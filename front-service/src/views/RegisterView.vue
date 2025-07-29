@@ -30,10 +30,10 @@
     </div>
   </div>
 </template>
+
+
 <script>
-
-import { userApi, roomsApi, reservationApi } from '../utils/axios';
-
+import { userApi } from '../utils/axios';
 
 export default {
   name: 'RegisterView',
@@ -43,6 +43,7 @@ export default {
       email: '',
       senha: '',
       confirmarSenha: '',
+      role: 'user', 
       loading: false,
       error: null,
     };
@@ -58,7 +59,7 @@ export default {
         return;
       }
 
-      if (this.senha.length < 6) { 
+      if (this.senha.length < 6) {
         this.error = 'A senha deve ter pelo menos 6 caracteres.';
         this.loading = false;
         return;
@@ -66,14 +67,15 @@ export default {
 
       try {
         const response = await userApi.post('/cadastrar', {
-          nome: this.nome, 
+          nome: this.nome,
           email: this.email,
           senha: this.senha,
+          role: this.role, 
         });
 
-        if (response.status === 201 || response.status === 200) { 
+        if (response.status === 201 || response.status === 200) {
           alert(response.data.msg || 'Usuário registrado com sucesso!');
-          this.$router.push('/login'); 
+          this.$router.push('/login');
         } else {
           this.error = response.data.msg || 'Erro desconhecido ao tentar registrar.';
         }
