@@ -54,21 +54,21 @@ export default {
           localStorage.setItem('token', token);
 
           const decoded = jwtDecode(token);
-          console.log('[Token decodificado]', decoded); // 👈 ajuda a verificar a estrutura
+          console.log('[Token decodificado]', decoded);
 
           localStorage.setItem('role', decoded.role);
-          localStorage.setItem('usuario_id', decoded.id); // ✅ Salva o ID do usuário
+          localStorage.setItem('usuario_id', decoded.id); 
 
           alert(response.data.msg);
 
-          // Redireciona com base na role
           if (decoded.role === 'admin') {
-  this.$router.push('/reservas');  // << aqui o caminho correto
+  this.$router.push('/home');  
 } else if (decoded.role === 'user') {
   this.$router.push('/homeuser');
 } else {
-  this.$router.push('/login');  // ou qualquer rota padrão
+  this.$router.push('/login');
 }
+
 
         } else {
           this.error = response.data.msg || 'Erro desconhecido ao tentar login.';

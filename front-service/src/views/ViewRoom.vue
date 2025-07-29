@@ -32,6 +32,7 @@
       <button @click="nextPage" :disabled="currentPage === totalPages">Próxima</button>
     </div>
 
+    <!-- Modal de Quartos (apenas admin) -->
     <QuartoModal
       v-if="isAdmin"
       :is-visible="isModalOpen"
@@ -41,12 +42,25 @@
       @updateQuarto="handleUpdateQuarto"
       @deleteQuarto="handleDeleteQuarto"
     />
+
+    <!-- Modal de Reserva (apenas user) -->
+    <ReservaModal
+      v-if="isUser"
+      :is-visible="reservaModalOpen"
+      :reserva-to-edit="{
+        usuario_id: Number(userId),
+        numero_quarto: quartoSelecionadoParaReserva?.numero_quarto || null
+      }"
+      @close="reservaModalOpen = false"
+      @createReserva="handleCreateReserva"
+    />
   </div>
 </template>
 
 <script>
-import QuartoCard from '@/components/quartoCard.vue'; 
-import QuartoModal from '@/components/modals/ModalQuarto.vue'; 
+import QuartoCard from '../components/quartoCard.vue';
+import QuartoModal from '../components/modals/ModalQuarto.vue';
+import ModalReserva from '../components/modals/ModalReserva.vue';
 import { roomsApi, reservationApi } from '../utils/axios';
 
 export default {
@@ -54,6 +68,7 @@ export default {
   components: {
     QuartoCard,
     QuartoModal,
+    ModalReserva,
   },
   data() {
     return {
@@ -66,6 +81,10 @@ export default {
       itemsPerPage: 6,
       role: localStorage.getItem('role'),
       userId: localStorage.getItem('user_id') || null,
+
+      // Novos estados para reserva
+      reservaModalOpen: false,
+      quartoSelecionadoParaReserva: null,
     };
   },
   computed: {
@@ -92,7 +111,6 @@ export default {
       try {
         this.loading = true;
         this.error = null;
-
         const response = await roomsApi.get(`/listar?_=${Date.now()}`);
         this.quartos = Array.isArray(response.data) ? response.data : [];
       } catch (err) {
@@ -132,22 +150,32 @@ export default {
       alert('Quarto deletado com sucesso!');
       this.fetchQuartos();
     },
-    async handleReservarQuarto(quarto) {
-      try {
-        const dataReserva = {
-          usuario_id: this.userId,
-          numero_quarto: quarto.numero_quarto,
-          data_checkin: new Date().toISOString().split('T')[0], // exemplo: hoje
-          data_checkout: new Date(Date.now() + 3 * 86400000).toISOString().split('T')[0], // +3 dias
-        };
 
-        await reservationApi.post('/cadastrar', dataReserva);
+    // ✅ Novo: abre o modal de reserva
+    handleReservarQuarto(quarto) {
+      if (!quarto.disponivel) {
+        alert('Este quarto está ocupado.');
+        return;
+      }
+
+      this.quartoSelecionadoParaReserva = quarto;
+      this.reservaModalOpen = true;
+    },
+
+    // ✅ Novo: cria a reserva
+    async handleCreateReserva(reservaData) {
+      try {
+        await reservationApi.post('/cadastrar', reservaData);
         alert('Reserva realizada com sucesso!');
+        this.reservaModalOpen = false;
+        this.fetchQuartos(); // atualiza status dos quartos
+        this.$router.push('/minhasreservas'); // redireciona
       } catch (err) {
-        console.error('Erro ao reservar quarto:', err);
-        alert('Erro ao tentar reservar o quarto.');
+        console.error('Erro ao criar reserva:', err);
+        alert('Erro ao tentar criar a reserva.');
       }
     },
+
     nextPage() {
       if (this.currentPage < this.totalPages) this.currentPage++;
     },

@@ -51,7 +51,7 @@ export default {
   data() {
     return {
       reservas: [],
-      usuarioNomes: {}, // { usuario_id: nome }
+      usuarioNomes: {}, 
       loading: false,
       limiteExibicao: 10,
     };

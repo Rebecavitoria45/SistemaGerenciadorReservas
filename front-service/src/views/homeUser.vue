@@ -15,7 +15,7 @@
 
     <section class="reservas-section">
       <h2>Minhas Reservas</h2>
-      <ListagemReservas />
+      <Listagemuser />
     </section>
 <br>
 <br>
@@ -51,7 +51,7 @@
 
 <script>
 
-import ListagemReservas from '@/components/listaReservas.vue';
+import Listagemuser from '../components/Listagemuser.vue';
 import quartoCard from '@/components/quartoCard.vue';
 import ImageCarousel from '../components/Carousel.vue';
 import AgendamentoModal from '@/components/modals/ModalAgendamento.vue';
@@ -60,7 +60,7 @@ import { roomsApi, reservationApi } from '@/utils/axios';
 export default {
   name: 'HomeView',
   components: {
-    ListagemReservas,
+    Listagemuser,
     quartoCard,
     ImageCarousel,
     AgendamentoModal,
@@ -158,7 +158,6 @@ export default {
   margin-bottom: 40px;
 }
 
-/* Aqui vem a grid para os cards */
 .quartos-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -167,7 +166,6 @@ export default {
   align-items: start;
 }
 
-/* Estilo para o botão reservar, se tiver */
 .button-reservar {
   padding: 10px 20px;
   background-color: #28a745;

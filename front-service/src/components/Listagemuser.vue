@@ -1,36 +1,54 @@
 <template>
-  <div>
-    <h2>Minhas Reservas (Listagem)</h2>
-
-    <div v-if="loading">Carregando reservas...</div>
-    <div v-if="error" class="error">{{ error }}</div>
-
-    <div v-if="reservas.length > 0" class="reservas-container">
-      <ReservaCard
-        v-for="reserva in reservas"
-        :key="reserva.id_reserva"
-        :reserva="reserva"
-        @open-popup="abrirDetalhesReserva"
-      />
+  <div class="listagem-container">
+    <h2>Minhas Reservas</h2>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Reserva</th>
+            <th>Data Reserva</th>
+            <th>Quarto</th>
+            <th>Check-in</th>
+            <th>Check-out</th>
+            <th>Preço</th>
+            <th>N. Pessoas</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-if="loading">
+            <td colspan="7" class="no-data">Carregando reservas...</td>
+          </tr>
+          <tr v-else-if="reservas.length === 0">
+            <td colspan="7" class="no-data">Nenhuma reserva encontrada.</td>
+          </tr>
+          <tr v-for="reserva in reservas" :key="reserva.id_reserva">
+            <td>{{ reserva.id_reserva }}</td>
+            <td>{{ formatarData(reserva.data_reserva) }}</td>
+            <td>{{ reserva.numero_quarto }}</td>
+            <td>{{ formatarData(reserva.check_in) }}</td>
+            <td>{{ formatarData(reserva.check_out) }}</td>
+            <td>R$ {{ parseFloat(reserva.preco_reserva).toFixed(2) }}</td>
+            <td>{{ reserva.numero_pessoas }}</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
-
-    <div v-else-if="!loading && !error">Nenhuma reserva encontrada.</div>
+    <div class="ver-mais-container">
+      <button @click="irParaMinhasReservas" class="btn-ver-mais-global">Ver Todas as Reservas</button>
+    </div>
   </div>
 </template>
 
 <script>
-import ReservaCard from '../components/ReservaCard.vue';
 import { ref, onMounted } from 'vue';
 import { reservationApi } from '../utils/axios';
 import { useRouter } from 'vue-router';
 
 export default {
-  components: { ReservaCard },
-
+  name: 'MinhasReservas',
   setup() {
     const reservas = ref([]);
     const loading = ref(false);
-    const error = ref(null);
     const router = useRouter();
 
     function pegarUsuarioIdDoToken() {
@@ -46,16 +64,13 @@ export default {
       }
     }
 
-    async function carregarReservas() {
+    async function carregarReservasUsuario() {
       loading.value = true;
-      error.value = null;
-
       const usuarioId = pegarUsuarioIdDoToken();
 
       if (!usuarioId) {
-        error.value = 'Usuário não autenticado.';
         loading.value = false;
-        router.push('/login'); // redireciona para login se quiser
+        router.push('/login');
         return;
       }
 
@@ -63,31 +78,40 @@ export default {
         const response = await reservationApi.get(`/reservasusuario/${usuarioId}`);
         reservas.value = response.data;
       } catch (err) {
-        error.value = err.response?.data?.msg || 'Erro ao carregar reservas';
+        console.error('Erro ao carregar reservas do usuário:', err);
+        reservas.value = [];
       } finally {
         loading.value = false;
       }
     }
 
-    function abrirDetalhesReserva(idReserva) {
-      console.log('Abrir detalhes da reserva:', idReserva);
+    function formatarData(dataISO) {
+      if (!dataISO) return 'N/A';
+      const data = new Date(dataISO);
+      if (isNaN(data)) return 'Data Inválida';
+      const dia = String(data.getDate()).padStart(2, '0');
+      const mes = String(data.getMonth() + 1).padStart(2, '0');
+      const ano = data.getFullYear();
+      return `${dia}/${mes}/${ano}`;
+    }
+
+    function irParaMinhasReservas() {
+      router.push('/minhasReservas');
     }
 
     onMounted(() => {
-      carregarReservas();
+      carregarReservasUsuario();
     });
 
     return {
       reservas,
       loading,
-      error,
-      abrirDetalhesReserva,
+      formatarData,
+      irParaMinhasReservas,
     };
   },
 };
 </script>
-
-
 
 <style scoped>
 .listagem-container {
