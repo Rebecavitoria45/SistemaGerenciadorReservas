@@ -11,7 +11,9 @@ O sistema permite realizar:
 - Cadastro e gerenciamento de quartos
 - Criação, listagem, atualização e exclusão de reservas
 - Cálculo automático do valor da reserva com base nas datas e no preço do quarto
-- Comunicação entre microsserviços de forma assíncrona via **RabbitMQ** para a realizar a atualização da disponibilidade do quarto
+- Comunicação entre microsserviços de forma assíncrona via **RabbitMQ**
+- **Autenticação via JWT**
+- **Autorização por níveis de acesso (admin e usuário comum)**
 
 ---
 
@@ -26,7 +28,7 @@ O sistema está dividido em três microsserviços principais:
 ### 🔗 Comunicação entre serviços
 
 - **AXIOS** para operações síncronas (ex.: verificar se um usuário existe, buscar informações de um quarto).
-- **RabbitMQ** para eventos assíncronos (ex.: atualizar disponibilidade de quartos quando uma reserva é criada ou excluida).
+- **RabbitMQ** para eventos assíncronos (ex.: atualizar disponibilidade de quartos quando uma reserva é criada ou excluída).
 
 ---
 
@@ -38,6 +40,8 @@ O sistema está dividido em três microsserviços principais:
 - RabbitMQ
 - Docker e Docker Compose
 - Axios
+- JWT (autenticação)
+- Controle de acesso baseado em **roles** (admin / user)
 - Frontend: VUE
 
 ---
@@ -54,6 +58,7 @@ O sistema está dividido em três microsserviços principais:
 ```bash
 docker-compose up --build
 ```
+
 ### Subindo o Frontend
 
 ```bash
@@ -61,6 +66,7 @@ npm install
 npm run serve
 ```
 
+---
 
 ### 🐇 Acesso ao RabbitMQ
 
@@ -70,16 +76,26 @@ npm run serve
 
 ---
 
+## 🔐 Autenticação e Autorização
+
+- O sistema utiliza **JWT** para autenticação de usuários.
+- Cada usuário possui um papel (`role`) definido: `admin` ou `user`.
+- Somente usuários com a role `admin` podem acessar ou modificar recursos restritos (ex: cadastrar/quartos ou deletar usuários).
+- Os tokens JWT devem ser enviados no header:  
+  `Authorization: Bearer <token>`
+
+---
+
 ## 📦 Endpoints Principais
 
 ### 🔹 Usuários Service
 
 | Método | Endpoint                          | Descrição                      |
-|--------|---------------------------------- |--------------------------------|
+|--------|-----------------------------------|--------------------------------|
 | POST   | `/cadastrar`                      | Cadastrar usuário              |
 | POST   | `/login`                          | Realizar login do usuário      |
 | PUT    | `/atualizar/:usuario_id`          | Atualizar dados do usuário     |
-| DELETE | `/deletar/:usuario_id`            | Deletar usuário                |
+| DELETE | `/deletar/:usuario_id`            | Deletar usuário (admin only)   |
 | GET    | `/listar`                         | Listar todos os usuários       |
 | GET    | `/buscar/:usuario_id`             | Buscar usuário por ID          |
 
@@ -88,25 +104,25 @@ npm run serve
 ### 🔹 Quartos Service
 
 | Método | Endpoint             | Descrição                          |
-|--------|-----------------------|-------------------------------------|
-| GET    | `/listar `            | Listar todos os quartos            |
-| GET    | `/buscar /:id`        | Buscar quarto por ID               |
-| POST   | `/cadastrar`          | Cadastrar quarto                   |
-| PUT    | `/atualizar/:id`      | Atualizar dados do quarto          |
-| DELETE | `/deletar/:id`        | Excluir quarto                     |
+|--------|----------------------|-------------------------------------|
+| GET    | `/listar`            | Listar todos os quartos             |
+| GET    | `/buscar/:id`        | Buscar quarto por ID                |
+| POST   | `/cadastrar`         | Cadastrar quarto (admin only)       |
+| PUT    | `/atualizar/:id`     | Atualizar dados do quarto (admin)   |
+| DELETE | `/deletar/:id`       | Excluir quarto (admin only)         |
 
 ---
 
 ### 🔹 Reservas Service
 
 | Método | Endpoint                           | Descrição                                  |
-|--------|-------------------------------------|----------------------------------------------|
-| GET    | `/listar`                           | Listar todas as reservas                    |
-| GET    | `/reservas/:id_reserva`             | Buscar reserva por ID                       |
-| GET    | `/reservasusuario/:usuario_id`      | Listar reservas de um usuário               |
-| POST   | `/cadastrar`                        | Criar uma nova reserva                      |
-| PUT    | `/atualizar/:id_reserva`            | Atualizar dados de uma reserva              |
-| DELETE | `/deletar/:id_reserva`              | Cancelar (excluir) uma reserva              |
+|--------|------------------------------------|--------------------------------------------|
+| GET    | `/listar`                          | Listar todas as reservas                   |
+| GET    | `/reservas/:id_reserva`            | Buscar reserva por ID                      |
+| GET    | `/reservasusuario/:usuario_id`     | Listar reservas de um usuário              |
+| POST   | `/cadastrar`                       | Criar uma nova reserva                     |
+| PUT    | `/atualizar/:id_reserva`           | Atualizar dados de uma reserva             |
+| DELETE | `/deletar/:id_reserva`             | Cancelar (excluir) uma reserva             |
 
 ---
 
@@ -125,15 +141,9 @@ npm run serve
       <a href="https://github.com/Rebecavitoria45">
         <img src="https://avatars.githubusercontent.com/u/117654851?v=4" width="100px;" alt="Rebeca"/>
         <br>
-        <b>Rebeca vitória</b>
+        <b>Rebeca Vitória</b>
       </a>
     </td>
 </table>
 
 
-
----
-
-## 🏆 Status do Projeto
-
-🚀 Projeto em desenvolvimento, com funcionalidades principais implementadas e arquitetura baseada em microsserviços funcionando via Docker e RabbitMQ.
