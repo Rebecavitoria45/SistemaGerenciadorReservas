@@ -22,7 +22,7 @@
 
     <section class="quartos-section">
       <h2>Quartos Disponíveis</h2>
-
+<br>
       <div v-if="loading">Carregando quartos...</div>
       <div v-else-if="quartos.length === 0">Nenhum quarto disponível.</div>
 
@@ -36,15 +36,15 @@
         />
       </div>
     </section>
-
-    <AgendamentoModal
-    v-if="isUser"
+    <ReservaModal
+  v-if="modalAgendamentoVisivel"
   :is-visible="modalAgendamentoVisivel"
-  :quarto="selectedQuarto"
-  :usuario="{ id: userId }"
-  @close="fecharModalAgendamento"
-  @confirmarReserva="enviarReserva"
+  :modo-usuario="true"
+  :reserva-to-edit="selectedReserva"
+  @close="fecharAgendamento"
+  @createReserva="handleReservar"
 />
+
   </div>
 </template>
 
@@ -52,10 +52,10 @@
 <script>
 
 import Listagemuser from '../components/Listagemuser.vue';
-import quartoCard from '@/components/quartoCard.vue';
+import quartoCard from '../components/quartoCard.vue';
 import ImageCarousel from '../components/Carousel.vue';
-import AgendamentoModal from '@/components/modals/ModalAgendamento.vue';
-import { roomsApi, reservationApi } from '@/utils/axios';
+import ReservaModal from '../components/modals/ModalReserva.vue';
+import { roomsApi, reservationApi } from '../utils/axios';
 
 export default {
   name: 'HomeView',
@@ -63,17 +63,18 @@ export default {
     Listagemuser,
     quartoCard,
     ImageCarousel,
-    AgendamentoModal,
+    ReservaModal,
   },
   data() {
-    return {
-      quartos: [],
-      loading: true,
-      modalAgendamentoVisivel: false,
-      selectedQuarto: null,
-      userId: parseInt(localStorage.getItem('userId')),
-    };
-  },
+  return {
+    quartos: [],
+    loading: true,
+    modalAgendamentoVisivel: false,
+    selectedReserva: null,
+    userId: parseInt(localStorage.getItem('userId')),
+  };
+},
+
   async created() {
     await this.fetchQuartos();
   },
@@ -89,32 +90,43 @@ export default {
         this.loading = false;
       }
     },
-    abrirAgendamento(quarto) {
-      this.selectedQuarto = quarto;
-      this.modalAgendamentoVisivel = true;
+   abrirAgendamento(quarto) {
+  this.selectedReserva = {
+    usuario_id: this.userId,
+    numero_quarto: quarto.numero_quarto,
+    data_reserva: new Date().toISOString().split('T')[0],
+    check_in: '',
+    check_out: '',
+    numero_pessoas: 1,
+  };
+  this.modalAgendamentoVisivel = true;
+}
     },
     fecharAgendamento() {
       this.modalAgendamentoVisivel = false;
       this.selectedQuarto = null;
     },
-    async handleReservar({ numero_quarto, data_inicio, data_fim }) {
-      try {
-        await reservationApi.post('/cadastrar', {
-          numero_quarto,
-          usuario_id: this.userId,
-          data_checkin: data_inicio,
-          data_checkout: data_fim,
-        });
-        alert('Reserva realizada com sucesso!');
-        this.fecharAgendamento();
-        this.fetchQuartos();
-      } catch (err) {
-        console.error('Erro ao reservar:', err);
-        alert('Erro ao realizar reserva.');
-      }
-    },
-  },
-};
+    async handleReservar(reserva) {
+  try {
+    await reservationApi.post('/cadastrar', {
+      numero_quarto: reserva.numero_quarto,
+      usuario_id: reserva.usuario_id,
+      data_reserva: reserva.data_reserva,
+      check_in: reserva.check_in,
+      check_out: reserva.check_out,
+      numero_pessoas: reserva.numero_pessoas,
+    });
+    alert('Reserva realizada com sucesso!');
+    this.fecharAgendamento();
+    this.fetchQuartos();
+  } catch (err) {
+    console.error('Erro ao reservar:', err);
+    alert('Erro ao realizar reserva.');
+  }
+}
+  
+  };
+
 </script>
 
 

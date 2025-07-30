@@ -32,7 +32,9 @@ export default {
   },
   methods: {
     emitOpenPopup() {
-      this.$emit('open-popup', this.quarto.numero_quarto);
+      if (this.quarto.disponivel) {
+        this.$emit('agendar', this.quarto);
+      }
     },
     formatarPreco(preco) {
       if (preco === null || preco === undefined) return '0,00';
@@ -41,6 +43,7 @@ export default {
   },
 };
 </script>
+
 
 <style scoped>
 .quarto-card {

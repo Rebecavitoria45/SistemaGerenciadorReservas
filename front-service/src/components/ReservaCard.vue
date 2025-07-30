@@ -13,11 +13,9 @@
       <p><strong>Pessoas:</strong> {{ reserva.numero_pessoas }}</p>
       <p><strong>Preço:</strong> R$ {{ formatarPreco(reserva.preco_reserva) }}</p>
     </div>
-    <div class="card-footer" v-if="mostrarBotaoDetalhes">
-      <button @click.stop="emitOpenPopup">Ver Detalhes</button>
-    </div>
   </div>
 </template>
+
 
 <script>
 export default {
@@ -33,7 +31,7 @@ export default {
     },
     mostrarNomeUsuario: {
       type: Boolean,
-      default: false,  // Só true para admin
+      default: false, 
     },
     mostrarBotaoDetalhes: {
       type: Boolean,
